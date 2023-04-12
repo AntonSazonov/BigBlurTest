@@ -62,7 +62,7 @@ public:
 
 private:
 	std::map <std::string, command>	m_commands{
-			{ "quit", { "Quit", []{ fprintf( stderr, "Quit program.\n" ); } } }
+			{ "quit", { "Quit", []{ std::fprintf( stderr, "Quit program.\n" ); } } }
 		};
 
 

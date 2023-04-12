@@ -74,7 +74,8 @@ public:
 		m_rect = rect;
 
 
-		ctx.setFillStyle( BLRgba32( 0, 0, 0, 159 ) );
+		//ctx.setFillStyle( BLRgba32( 0, 0, 0, 159 ) );
+		ctx.setFillStyle( BLRgba32( 0, 0, 0, 191 ) );
 		ctx.fillRoundRect( rect, expand );
 
 		if ( m_is_hovered ) {
@@ -111,7 +112,7 @@ public:
 		BLTextMetrics tm;
 		sans.getTextMetrics( gb, tm );
 
-//		printf( "text width = %f, height = %f\n",
+//		std::printf( "text width = %f, height = %f\n",
 //			tm.boundingBox.x1 - tm.boundingBox.x0 + 1, sans.size() );
 
 		ctx.fillGlyphRun( BLPoint( m_rect.x + 10, m_rect.y + 50 ), sans, gb.glyphRun() );

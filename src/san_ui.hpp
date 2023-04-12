@@ -26,7 +26,7 @@ class ui : public BLContext {
 
 	bool load_font( BLFontFace & face, const char * name ) {
 		if ( face.createFromFile( name ) ) {
-			fprintf( stderr, "Could not create font '%s'.\n", name );
+			std::fprintf( stderr, "Could not create font '%s'.\n", name );
 			return false;
 		}
 		return true;
@@ -100,7 +100,7 @@ public:
 		font.getTextMetrics( gb, tm );
 
 		BLFontMetrics fm = font.metrics();
-		//printf( "capHeight = %f, size = %f, xHeight = %f\n", fm.capHeight, fm.size, fm.xHeight );
+		//std::printf( "capHeight = %f, size = %f, xHeight = %f\n", fm.capHeight, fm.size, fm.xHeight );
 		return { tm.boundingBox.x1 - tm.boundingBox.x0 + 1, fm.capHeight };
 	}
 
@@ -141,10 +141,10 @@ freely, subject to the following restrictions:
 		m_font_sans.getTextMetrics( gb, tm );
 
 		//BLFontMetrics fm = m_font_sans.metrics();
-		//printf( "capHeight = %f, size = %f, xHeight = %f\n", fm.capHeight, fm.size, fm.xHeight );
+		//std::printf( "capHeight = %f, size = %f, xHeight = %f\n", fm.capHeight, fm.size, fm.xHeight );
 		//return { tm.boundingBox.x1 - tm.boundingBox.x0 + 1, fm.capHeight };
 
-		printf( "test_text: w = %f, h = %f\n",
+		std::printf( "test_text: w = %f, h = %f\n",
 			tm.boundingBox.x1 - tm.boundingBox.x0 + 1,
 			tm.boundingBox.y1 - tm.boundingBox.y0 + 1 );
 		return;

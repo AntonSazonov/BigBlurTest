@@ -19,7 +19,7 @@ namespace sdl {
 
 	return std::shared_ptr<SDL_Surface>( p_image, []( SDL_Surface * p ) {
 #ifndef NDEBUG
-			fprintf( stderr, "Free image: %p\n", p );
+			std::printf( stderr, "Free image: %p\n", p );
 #endif
 			SDL_FreeSurface( p );
 		} );

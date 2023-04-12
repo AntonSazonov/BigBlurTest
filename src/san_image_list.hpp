@@ -12,13 +12,13 @@ public:
 		// Load all JPEGs from diretory...
 		for ( auto & p : std::filesystem::recursive_directory_iterator( path ) ) {
 			if ( p.path().extension() == ".jpg" ) { // JPEGs only
-				printf( "Loading '%s'...", p.path().string().c_str() );
+				std::printf( "Loading '%s'...", p.path().string().c_str() );
 				std::shared_ptr <SDL_Surface> image = sdl::load( p.path().string().c_str() );
 				if ( image ) {
 					m_images.push_back( image );
-					printf( " ok.\n" );
+					std::printf( " ok.\n" );
 				} else {
-					printf( " failed.\n" );
+					std::printf( " failed.\n" );
 				}
 			}
 		}

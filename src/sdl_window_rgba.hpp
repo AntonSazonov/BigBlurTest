@@ -182,7 +182,7 @@ public:
 
 		return std::shared_ptr<SDL_Surface>( p, []( SDL_Surface * p ) {
 #ifndef NDEBUG
-				fprintf( stderr, "Free backbuffer copy: %p\n", p );
+				std::fprintf( stderr, "Free backbuffer copy: %p\n", p );
 #endif
 				SDL_FreeSurface( p );
 			} );

@@ -61,7 +61,7 @@ public:
 		if ( !m_num_threads ) m_num_threads = std::thread::hardware_concurrency();
 		assert( m_num_threads > 0 );
 
-		printf( "%s: %d threads created.\n", __FUNCTION__, m_num_threads );
+		std::printf( "%s: %d threads created.\n", __FUNCTION__, m_num_threads );
 
 		m_threads = std::make_unique<std::thread[]>( m_num_threads );
 

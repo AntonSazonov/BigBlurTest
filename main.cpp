@@ -73,7 +73,7 @@ public:
 		, m_backbuffer_agg( m_backbuffer_view )
 		, m_ui( m_backbuffer_view, 36 )
 	{
-		set_title( (std::to_string( m_parallel_for.num_threads() ) + " threads available").c_str() );
+		//set_title( (std::to_string( m_parallel_for.num_threads() ) + " threads available").c_str() );
 
 		// Console
 		//san::ui::console & con = m_ui.console();
@@ -99,7 +99,7 @@ public:
 		// Add UI algorithms buttons...
 		int y = 10;
 		for ( const auto & p : m_algorithms ) {
-			m_ui.add_control( new san::ui::button( { 10, double(y) }, p.first, [&]{ printf( "Benchmark start...\n" ); start_benchmark( p ); } ) );
+			m_ui.add_control( new san::ui::button( { 10, double(y) }, p.first, [&]{ std::printf( "Benchmark start...\n" ); start_benchmark( p ); } ) );
 			y += 40;
 		}
 
@@ -146,19 +146,20 @@ public:
 
 	using clock_type = std::chrono::high_resolution_clock;
 
-	clock_type::time_point	m_bench_start;
-
-	int		m_bench_time_ms		= 10'000;
-	int		m_bench_raises;
-	int		m_bench_radius;
-	int		m_bench_interations;
+	clock_type::time_point		m_bench_start;
+	int							m_bench_time_ms		= 10'000;
+	int							m_bench_raises;
+	int							m_bench_radius;
+	int							m_bench_interations;
+	std::string					m_bench_name;
 	std::function <void(int)>	m_bench_func;
 
 	template <typename PairT>
 	void start_benchmark( PairT pair ) {
 
+		m_bench_name = pair.first;
 		m_bench_func = pair.second;
-		printf( "Benchmarking (%d ms.): %s \n", m_bench_time_ms, pair.first.c_str() );
+		std::printf( "Benchmarking (%d ms.): %s \n", m_bench_time_ms, m_bench_name.c_str() );
 
 		m_bench_raises		= 1;
 		m_bench_radius		= 0;
@@ -180,7 +181,7 @@ public:
 
 		if ( !m_is_benchmarking ) {
 			//san::stack_blur_naive<san::rgba_calc::naive>( m_backbuffer_view, m_mouse_x );
-			san::stack_blur_naive<san::rgba_calc::sse2>( m_backbuffer_view, m_mouse_x );
+			//san::stack_blur_naive<san::rgba_calc::sse2>( m_backbuffer_view, m_mouse_x );
 		}
 
 		if ( m_is_benchmarking ) {
@@ -189,9 +190,17 @@ public:
 			m_bench_func( m_bench_radius );
 
 			if ( m_bench_raises ) {
-				if ( m_bench_radius++ >= 254 ) m_bench_raises ^= 1;
+				if ( m_bench_radius++ >= 254 ) {
+					m_bench_raises ^= 1;
+				}
 			} else {
-				if ( --m_bench_radius <=   0 ) m_bench_raises ^= 1;
+				if ( --m_bench_radius <=   0 ) {
+					m_bench_raises ^= 1;
+#if 0
+					m_image_list.go_next(); // Go next image...
+					blit_scaled( m_image_list.current_image().get(), m_backbuffer_copy.get() );
+#endif
+				}
 			}
 
 			// Get time elapsed...
@@ -207,8 +216,13 @@ public:
 
 				double sec = ms / 1e3;
 				double fps = m_bench_interations / sec;
-				printf( "Benchmark done. %4d iterations in %5.2f ms. %6.2f FPS. %lu MPixels/s.\n",
-					m_bench_interations, ms, fps, uint32_t(width() * height() * fps / 1e6) );
+
+				char buffer[256];
+				std::sprintf( buffer, "%s --- done. %4d iterations in %5.2f sec. %6.2f FPS. %lu MPixels/s.\n",
+					m_bench_name.c_str(), m_bench_interations, sec, fps, uint32_t(width() * height() * fps / 1e6) );
+
+				set_title( buffer );
+				std::puts( buffer );
 
 				// To update display...
 				SDL_Event ev = {};

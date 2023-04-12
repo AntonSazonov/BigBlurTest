@@ -51,14 +51,14 @@ class app final : public sdl::window_rgba {
 	agg_recursive_blur_mt_t			m_agg_recursive_blur_mt;
 
 	std::forward_list <std::pair<std::string, std::function <void(int)>>> m_algorithms{
-		{ "1. san::stack_blur_naive"       , std::bind( san::stack_blur_naive         <san::rgba_calc::naive>                                             , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
-		{ "2. san::stack_blur_naive_mt"    , std::bind( san::stack_blur_naive_mt      <san::rgba_calc::naive,  san::parallel_for>                         , std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
-		{ "3. agg::stack_blur_rgba32"      , std::bind( agg::stack_blur_rgba32        <san::agg_image_adaptor>                                            , std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::placeholders::_1 ) },
-		{ "4. agg::stack_blur_rgba32_mt"   , std::bind( agg::stack_blur_rgba32_mt     <san::agg_image_adaptor, san::parallel_for>                         , std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::placeholders::_1, std::ref( m_parallel_for ) ) },
-		{ "5. agg::stack_blur::blur"       , std::bind( &agg_stack_blur_t       ::blur<san::agg_image_adaptor>,                    m_agg_stack_blur       , std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) },
-		{ "6. agg::stack_blur_mt::blur"    , std::bind( &agg_stack_blur_mt_t    ::blur<san::agg_image_adaptor, san::parallel_for>, m_agg_stack_blur_mt    , std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
-		{ "7. agg::recursive_blur::blur"   , std::bind( &agg_recursive_blur_t   ::blur<san::agg_image_adaptor>,                    m_agg_recursive_blur   , std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) },
-		{ "8. agg::recursive_blur_mt::blur", std::bind( &agg_recursive_blur_mt_t::blur<san::agg_image_adaptor, san::parallel_for>, m_agg_recursive_blur_mt, std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
+		{ "san::stack_blur_naive"       , std::bind( san::stack_blur_naive         <san::rgba_calc::naive>                                             , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
+		{ "san::stack_blur_naive_mt"    , std::bind( san::stack_blur_naive_mt      <san::rgba_calc::naive,  san::parallel_for>                         , std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
+		{ "agg::stack_blur_rgba32"      , std::bind( agg::stack_blur_rgba32        <san::agg_image_adaptor>                                            , std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::placeholders::_1 ) },
+		{ "agg::stack_blur_rgba32_mt"   , std::bind( agg::stack_blur_rgba32_mt     <san::agg_image_adaptor, san::parallel_for>                         , std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::placeholders::_1, std::ref( m_parallel_for ) ) },
+		{ "agg::stack_blur::blur"       , std::bind( &agg_stack_blur_t       ::blur<san::agg_image_adaptor>,                    m_agg_stack_blur       , std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) },
+		{ "agg::stack_blur_mt::blur"    , std::bind( &agg_stack_blur_mt_t    ::blur<san::agg_image_adaptor, san::parallel_for>, m_agg_stack_blur_mt    , std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
+		{ "agg::recursive_blur::blur"   , std::bind( &agg_recursive_blur_t   ::blur<san::agg_image_adaptor>,                    m_agg_recursive_blur   , std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) },
+		{ "agg::recursive_blur_mt::blur", std::bind( &agg_recursive_blur_mt_t::blur<san::agg_image_adaptor, san::parallel_for>, m_agg_recursive_blur_mt, std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
 		};
 
 public:
@@ -198,8 +198,8 @@ public:
 
 				double sec = ms / 1000;
 				double fps = m_bench_interations / sec;
-				printf( "Benchmark done. %4d iterations in %5.2f ms. %6.2f FPS. %" PRIu64 " pixels/sec.\n",
-					m_bench_interations, ms, fps, uint64_t(width() * height() * fps) );
+				printf( "Benchmark done. %4d iterations in %5.2f ms. %6.2f FPS. %lu MPixels/s.\n",
+					m_bench_interations, ms, fps, uint32_t(width() * height() * fps / 1e6) );
 
 				// To update display...
 				SDL_Event ev = {};

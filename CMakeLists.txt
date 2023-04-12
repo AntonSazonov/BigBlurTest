@@ -10,6 +10,8 @@ find_package( SDL2_image REQUIRED )
 
 set( COMPILE_OPTS_FILE ${CMAKE_CURRENT_SOURCE_DIR}/main_compile_opts.hpp )
 
+#list( TRANSFORM SRC PREPEND "src/" )
+
 add_executable( main
 	main.cpp
 
@@ -25,7 +27,7 @@ add_executable( main
 	src/agg/agg_pixfmt_transposer.h
 	src/agg/agg_stack_blur_mt.hpp
 	src/agg/agg_recursive_blur_mt.hpp
-	san_agg_image_adaptor.hpp
+	src/san_agg_image_adaptor.hpp
 
 	src/san_ui.hpp
 	src/san_ui_console.hpp
@@ -34,10 +36,10 @@ add_executable( main
 	src/san_ui_ctrl_checkbox.hpp
 	src/san_ui_ctrl_text.hpp
 
-	san_image_view.hpp
-	san_stack_blur_naive.hpp
+	src/san_image_view.hpp
+	src/san_stack_blur_naive.hpp
 
-	san_image_list.hpp
+	src/san_image_list.hpp
 
 	${COMPILE_OPTS_FILE} )
 

@@ -1,6 +1,5 @@
-_*
-_build
-build
+_build*
+build*
 test
 test*
 x

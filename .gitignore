@@ -1,4 +1,8 @@
 _build*
+_*.txt
+_*.h
+_*.hpp
+_*.cpp
 build*
 test
 test*

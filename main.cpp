@@ -23,6 +23,7 @@
 #include "san_ui_ctrl_checkbox.hpp"
 #include "san_ui_ctrl_text.hpp"
 
+#include "san_rgba_calc_naive.hpp"
 #include "san_stack_blur_naive.hpp"
 #include "main_compile_opts.hpp"
 
@@ -50,8 +51,8 @@ class app final : public sdl::window_rgba {
 	agg_recursive_blur_mt_t			m_agg_recursive_blur_mt;
 
 	std::forward_list <std::pair<std::string, std::function <void(int)>>> m_algorithms{
-		{ "1. san::stack_blur_naive"       , std::bind( san::stack_blur_naive                                                                             , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
-		{ "2. san::stack_blur_naive_mt"    , std::bind( san::stack_blur_naive_mt                              <san::parallel_for>                         , std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
+		{ "1. san::stack_blur_naive"       , std::bind( san::stack_blur_naive         <san::rgba_calc::naive>                                             , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
+		{ "2. san::stack_blur_naive_mt"    , std::bind( san::stack_blur_naive_mt      <san::rgba_calc::naive,  san::parallel_for>                         , std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
 		{ "3. agg::stack_blur_rgba32"      , std::bind( agg::stack_blur_rgba32        <san::agg_image_adaptor>                                            , std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::placeholders::_1 ) },
 		{ "4. agg::stack_blur_rgba32_mt"   , std::bind( agg::stack_blur_rgba32_mt     <san::agg_image_adaptor, san::parallel_for>                         , std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::placeholders::_1, std::ref( m_parallel_for ) ) },
 		{ "5. agg::stack_blur::blur"       , std::bind( &agg_stack_blur_t       ::blur<san::agg_image_adaptor>,                    m_agg_stack_blur       , std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) },

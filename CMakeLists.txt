@@ -37,6 +37,7 @@ add_executable( main
 	src/san_ui_ctrl_text.hpp
 
 	src/san_image_view.hpp
+	src/san_rgba_calc_naive.hpp
 	src/san_stack_blur_naive.hpp
 
 	src/san_image_list.hpp

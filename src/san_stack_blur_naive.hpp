@@ -2,100 +2,6 @@
 
 namespace san {
 
-struct accum {
-	int	c[4];
-
-	accum() { zero(); }
-
-	accum( int x, int y, int z, int w ) {
-		c[0] = x;
-		c[1] = y;
-		c[2] = z;
-		c[3] = w;
-	}
-
-	accum( uint32_t value ) {
-		c[3] = (value >> 24) & 0xff;
-		c[2] = (value >> 16) & 0xff;
-		c[1] = (value >>  8) & 0xff;
-		c[0] =  value        & 0xff;
-	}
-
-	void zero() { c[0] = c[1] = c[2] = c[3] = 0; }
-
-	accum & operator = ( uint32_t value ) {
-		c[3] = (value >> 24) & 0xff;
-		c[2] = (value >> 16) & 0xff;
-		c[1] = (value >>  8) & 0xff;
-		c[0] =  value        & 0xff;
-		return *this;
-	}
-
-	accum & operator += ( const accum & rhs ) {
-		c[0] += rhs.c[0];
-		c[1] += rhs.c[1];
-		c[2] += rhs.c[2];
-		c[3] += rhs.c[3];
-		return *this;
-	}
-
-	accum & operator += ( uint32_t value ) {
-		c[3] += (value >> 24) & 0xff;
-		c[2] += (value >> 16) & 0xff;
-		c[1] += (value >>  8) & 0xff;
-		c[0] +=  value        & 0xff;
-		return *this;
-	}
-
-	accum & operator -= ( uint32_t value ) {
-		c[3] -= (value >> 24) & 0xff;
-		c[2] -= (value >> 16) & 0xff;
-		c[1] -= (value >>  8) & 0xff;
-		c[0] -=  value        & 0xff;
-		return *this;
-	}
-
-	accum & operator -= ( const accum & rhs ) {
-		c[0] -= rhs.c[0];
-		c[1] -= rhs.c[1];
-		c[2] -= rhs.c[2];
-		c[3] -= rhs.c[3];
-		return *this;
-	}
-
-	accum operator * ( int value ) const {
-		return accum(
-			c[0] * value,
-			c[1] * value,
-			c[2] * value,
-			c[3] * value );
-	}
-
-	accum operator / ( int value ) const {
-		return accum(
-			c[0] / value,
-			c[1] / value,
-			c[2] / value,
-			c[3] / value );
-	}
-
-	accum operator >> ( uint8_t value ) const {
-		return accum(
-			c[0] >> value,
-			c[1] >> value,
-			c[2] >> value,
-			c[3] >> value );
-	}
-
-	explicit operator uint32_t () const {
-		return ((c[3] & 0xff) << 24) |
-			   ((c[2] & 0xff) << 16) |
-			   ((c[1] & 0xff) <<  8) |
-			    (c[0] & 0xff);
-	}
-}; // struct accum
-
-
 class line {
 	uint32_t *	m_ptr;
 	int			m_len;
@@ -116,17 +22,18 @@ public:
 }; // struct line
 
 
+template <typename CalcT>
 void stack_blur_line_naive( line & r, int head, int tail/*exclusive*/, int radius ) {
 	int den = radius * (radius + 2) + 1;
 	int div = radius * 2 + 1;
 	uint32_t * p_stack = (uint32_t *)__builtin_alloca_with_align( sizeof( uint32_t ) * div, 128 );
 
 	// Fill initial stack...
-	accum sum, sum_in, sum_out;
+	CalcT sum, sum_in, sum_out;
 	for ( int i = -radius; i <= radius; i++ ) {
 		uint32_t c = r.get_pix( head + i );
 		p_stack[i + radius] = c;
-		sum += accum( c ) * (radius - std::abs( i ) + 1);
+		sum += CalcT( c ) * (radius - std::abs( i ) + 1);
 		if ( i <= 0 ) {
 			sum_out += c;
 		} else {
@@ -160,32 +67,32 @@ void stack_blur_line_naive( line & r, int head, int tail/*exclusive*/, int radiu
 	}
 }
 
+template <typename CalcT>
 void stack_blur_naive( san::image_view & image, int radius ) {
 	if ( radius <= 0 ) return;
 
 	// Horizontal pass...
 	for ( int y = 0; y < image.height(); y++ ) {
 		san::line r( (uint32_t *)image.row_ptr( y ), image.width(), 1/*advance*/ );
-		san::stack_blur_line_naive( r, 0, image.width(), radius );
+		san::stack_blur_line_naive<CalcT>( r, 0, image.width(), radius );
 	}
 
 	// Vertical pass...
 	for ( int x = 0; x < image.width(); x++ ) {
 		san::line r( (uint32_t *)image.col_ptr( x ), image.height(), image.stride() / 4/*sizeof uint32_t*/ );
-		san::stack_blur_line_naive( r, 0, image.height(), radius );
+		san::stack_blur_line_naive<CalcT>( r, 0, image.height(), radius );
 	}
 }
 
-template <typename ParallelFor>
+template <typename CalcT, typename ParallelFor>
 void stack_blur_naive_mt( san::image_view & image, int radius, ParallelFor & parallel_for, int override_num_threads = 0 ) {
-//void stack_blur_naive_mt( san::image_view & image, int radius, san::parallel_for & parallel_for, int override_num_threads = 0 ) {
 	if ( radius <= 0 ) return;
 
 	// Horizontal pass...
 	parallel_for.run_and_wait( 0, image.height(), [&]( int a, int b ) {
 		for ( int y = a; y < b; y++ ) {
 			san::line r( (uint32_t *)image.row_ptr( y ), image.width(), 1/*advance*/ );
-			san::stack_blur_line_naive( r, 0, image.width(), radius );
+			san::stack_blur_line_naive<CalcT>( r, 0, image.width(), radius );
 		}
 	}, override_num_threads );
 
@@ -193,7 +100,7 @@ void stack_blur_naive_mt( san::image_view & image, int radius, ParallelFor & par
 	parallel_for.run_and_wait( 0, image.width(), [&]( int a, int b ) {
 		for ( int x = a; x < b; x++ ) {
 			san::line r( (uint32_t *)image.col_ptr( x ), image.height(), image.stride() / 4/*sizeof uint32_t*/ );
-			san::stack_blur_line_naive( r, 0, image.height(), radius );
+			san::stack_blur_line_naive<CalcT>( r, 0, image.height(), radius );
 		}
 	}, override_num_threads );
 }

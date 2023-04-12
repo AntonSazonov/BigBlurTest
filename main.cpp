@@ -38,8 +38,10 @@ class app final : public sdl::window_rgba {
 
 	san::parallel_for				m_parallel_for;
 	san::ui::ui						m_ui;
-	san::image_list					m_image_list;
 
+	san::image_list					m_image_list;		// Loaded image list in its' original sizes
+
+	// Algorithms and implementations...
 	using agg_stack_blur_t			= agg::stack_blur			<agg::rgba8, agg::stack_blur_calc_rgba<uint32_t>>;
 	using agg_stack_blur_mt_t		= agg::stack_blur_mt		<agg::rgba8, agg::stack_blur_calc_rgba<uint32_t>>;
 
@@ -73,8 +75,6 @@ public:
 		, m_backbuffer_agg( m_backbuffer_view )
 		, m_ui( m_backbuffer_view, 36 )
 	{
-		//set_title( (std::to_string( m_parallel_for.num_threads() ) + " threads available").c_str() );
-
 		// Console
 		//san::ui::console & con = m_ui.console();
 		//con.add_command( "Exit", "Exit program.", [&](){ quit(); } );
@@ -179,10 +179,12 @@ public:
 		// Copy image to window's surface
 		blit( m_backbuffer_copy.get() );
 
+#if 0
 		if ( !m_is_benchmarking ) {
 			//san::stack_blur_naive<san::rgba_calc::naive>( m_backbuffer_view, m_mouse_x );
-			//san::stack_blur_naive<san::rgba_calc::sse2>( m_backbuffer_view, m_mouse_x );
+			san::stack_blur_naive<san::rgba_calc::sse2>( m_backbuffer_view, m_mouse_x );
 		}
+#endif
 
 		if ( m_is_benchmarking ) {
 

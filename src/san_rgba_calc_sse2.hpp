@@ -35,6 +35,10 @@ public:
 	sse2( uint32_t v ) {
 		__m128i zero = _mm_setzero_si128();
 		m = _mm_unpacklo_epi16( _mm_unpacklo_epi8( _mm_cvtsi32_si128( v ), zero ), zero );
+
+		//return v_interleave_lo_i16( v_interleave_lo_i8( v_load_i32( p ), zero ), zero );
+		//return v_interleave_lo_i16( v_interleave_lo_i8( _mm_set1_epi32( *p ), zero ), zero );
+		//return v_interleave_lo_i16( v_interleave_lo_i8( _mm_loadu_si128( (const __m128i *)p ), zero ), zero );
 	}
 
 	operator __m128i () const { return m; }

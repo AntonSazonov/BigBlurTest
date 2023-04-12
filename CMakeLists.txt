@@ -38,6 +38,7 @@ add_executable( main
 
 	src/san_image_view.hpp
 	src/san_rgba_calc_naive.hpp
+	src/san_rgba_calc_sse2.hpp
 	src/san_stack_blur_naive.hpp
 
 	src/san_image_list.hpp

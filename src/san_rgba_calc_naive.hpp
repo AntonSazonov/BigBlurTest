@@ -2,9 +2,10 @@
 
 namespace san::rgba_calc {
 
-struct naive {
+class naive {
 	int	c[4];
 
+public:
 	naive() { zero(); }
 
 	naive( int x, int y, int z, int w ) {

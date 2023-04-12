@@ -24,6 +24,7 @@
 #include "san_ui_ctrl_text.hpp"
 
 #include "san_rgba_calc_naive.hpp"
+#include "san_rgba_calc_sse2.hpp"
 #include "san_stack_blur_naive.hpp"
 #include "main_compile_opts.hpp"
 
@@ -51,15 +52,18 @@ class app final : public sdl::window_rgba {
 	agg_recursive_blur_mt_t			m_agg_recursive_blur_mt;
 
 	std::forward_list <std::pair<std::string, std::function <void(int)>>> m_algorithms{
-		{ "san::stack_blur_naive"       , std::bind( san::stack_blur_naive         <san::rgba_calc::naive>                                             , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
-		{ "san::stack_blur_naive_mt"    , std::bind( san::stack_blur_naive_mt      <san::rgba_calc::naive,  san::parallel_for>                         , std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
-		{ "agg::stack_blur_rgba32"      , std::bind( agg::stack_blur_rgba32        <san::agg_image_adaptor>                                            , std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::placeholders::_1 ) },
-		{ "agg::stack_blur_rgba32_mt"   , std::bind( agg::stack_blur_rgba32_mt     <san::agg_image_adaptor, san::parallel_for>                         , std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::placeholders::_1, std::ref( m_parallel_for ) ) },
-		{ "agg::stack_blur::blur"       , std::bind( &agg_stack_blur_t       ::blur<san::agg_image_adaptor>,                    m_agg_stack_blur       , std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) },
-		{ "agg::stack_blur_mt::blur"    , std::bind( &agg_stack_blur_mt_t    ::blur<san::agg_image_adaptor, san::parallel_for>, m_agg_stack_blur_mt    , std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
-		{ "agg::recursive_blur::blur"   , std::bind( &agg_recursive_blur_t   ::blur<san::agg_image_adaptor>,                    m_agg_recursive_blur   , std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) },
-		{ "agg::recursive_blur_mt::blur", std::bind( &agg_recursive_blur_mt_t::blur<san::agg_image_adaptor, san::parallel_for>, m_agg_recursive_blur_mt, std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
-		};
+		{ "san::stack_blur_naive"          , std::bind( san::stack_blur_naive         <san::rgba_calc::naive>                                             , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
+		{ "san::stack_blur_naive_mt"       , std::bind( san::stack_blur_naive_mt      <san::rgba_calc::naive,  san::parallel_for>                         , std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
+		{ "san::stack_blur_naive (SSE2)"   , std::bind( san::stack_blur_naive         <san::rgba_calc::sse2>                                              , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
+		{ "san::stack_blur_naive_mt (SSE2)", std::bind( san::stack_blur_naive_mt      <san::rgba_calc::sse2,   san::parallel_for>                         , std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
+		{ "agg::stack_blur_rgba32"         , std::bind( agg::stack_blur_rgba32        <san::agg_image_adaptor>                                            , std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::placeholders::_1 ) },
+		{ "agg::stack_blur_rgba32_mt"      , std::bind( agg::stack_blur_rgba32_mt     <san::agg_image_adaptor, san::parallel_for>                         , std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::placeholders::_1, std::ref( m_parallel_for ) ) },
+		{ "agg::stack_blur::blur"          , std::bind( &agg_stack_blur_t       ::blur<san::agg_image_adaptor>,                    m_agg_stack_blur       , std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) },
+		{ "agg::stack_blur_mt::blur"       , std::bind( &agg_stack_blur_mt_t    ::blur<san::agg_image_adaptor, san::parallel_for>, m_agg_stack_blur_mt    , std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
+		{ "agg::recursive_blur::blur"      , std::bind( &agg_recursive_blur_t   ::blur<san::agg_image_adaptor>,                    m_agg_recursive_blur   , std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) },
+		{ "agg::recursive_blur_mt::blur"   , std::bind( &agg_recursive_blur_mt_t::blur<san::agg_image_adaptor, san::parallel_for>, m_agg_recursive_blur_mt, std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
+	};
+
 
 public:
 	app( int width, int height )
@@ -104,7 +108,7 @@ public:
 	}
 
 
-	//int m_mouse_x = -1;
+	int m_mouse_x = -1;
 	//int m_mouse_y = -1;
 
 	bool on_event( uint64_t timestamp, SDL_Event * p_event ) override {
@@ -114,7 +118,7 @@ public:
 
 		switch ( p_event->type ) {
 			case SDL_MOUSEMOTION:
-				//m_mouse_x = p_event->motion.x;
+				m_mouse_x = p_event->motion.x;
 				//m_mouse_y = p_event->motion.y;
 				break;
 
@@ -174,6 +178,11 @@ public:
 		// Copy image to window's surface
 		blit( m_backbuffer_copy.get() );
 
+		if ( !m_is_benchmarking ) {
+			//san::stack_blur_naive<san::rgba_calc::naive>( m_backbuffer_view, m_mouse_x );
+			san::stack_blur_naive<san::rgba_calc::sse2>( m_backbuffer_view, m_mouse_x );
+		}
+
 		if ( m_is_benchmarking ) {
 
 			// Blur window's surface
@@ -196,7 +205,7 @@ public:
 				SDL_EventState( SDL_MOUSEBUTTONDOWN, SDL_ENABLE );
 				SDL_EventState( SDL_MOUSEBUTTONUP  , SDL_ENABLE );
 
-				double sec = ms / 1000;
+				double sec = ms / 1e3;
 				double fps = m_bench_interations / sec;
 				printf( "Benchmark done. %4d iterations in %5.2f ms. %6.2f FPS. %lu MPixels/s.\n",
 					m_bench_interations, ms, fps, uint32_t(width() * height() * fps / 1e6) );

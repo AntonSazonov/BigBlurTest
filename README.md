@@ -1,2 +1,1 @@
-# Blur_Test
- Blur algorithms and implementations test.
+# Blur algorithms and implementations test

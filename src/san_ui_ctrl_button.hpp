@@ -75,16 +75,35 @@ public:
 
 
 		//ctx.setFillStyle( BLRgba32( 0, 0, 0, 159 ) );
-		ctx.setFillStyle( BLRgba32( 0, 0, 0, 191 ) );
-		ctx.fillRoundRect( rect, expand );
 
 		if ( m_is_hovered ) {
+			// Solid
+			ctx.setFillStyle( BLRgba32( 0, 0, 0, 255 ) );
+			ctx.fillRoundRect( rect, expand );
+
+			// Stroke
+			//ctx.setStrokeStyle( BLRgba32( 127, 255, 191 ) ); // hovered
 			ctx.setStrokeStyle( BLRgba32( 255, 255, 255 ) ); // hovered
+			ctx.setStrokeWidth( 1.5 );
+			ctx.strokeRoundRect( rect, expand );
+
+#if 0
+			ctx.setStrokeStyle( BLRgba32( 0, 0, 0 ) );
+			ctx.setStrokeWidth( 1. );
+			ctx.strokeRoundRect( { rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4 }, expand );
+#endif
 		} else {
-			ctx.setStrokeStyle( BLRgba32( 127, 127, 127 ) ); // unhovered
+			// Solid
+			ctx.setFillStyle( BLRgba32( 0, 0, 0, 191 ) );
+			ctx.fillRoundRect( rect, expand );
+
+#if 1
+			// Stroke
+			ctx.setStrokeStyle( BLRgba32( 63, 63, 63 ) ); // unhovered
+			ctx.setStrokeWidth( 1.2 );
+			ctx.strokeRoundRect( rect, expand );
+#endif
 		}
-		ctx.setStrokeWidth( 1.2 );
-		ctx.strokeRoundRect( rect, expand );
 
 
 		//ctx.draw_text( BLPoint( m_rect.x + 10, m_rect.y + 50 ), m_name.c_str() );
@@ -94,7 +113,6 @@ public:
 		} else {
 			ctx.setFillStyle( BLRgba32( 191, 191, 191 ) );
 		}
-
 
 		// b = 200
 		// t = 100

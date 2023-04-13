@@ -94,6 +94,7 @@ public:
 		m_ui.add_control( new san::ui::textbox ( { 10, double(h-=th) }, "Compile options: " + std::string( g_compile_options ) ) );
 		m_ui.add_control( new san::ui::textbox ( { 10, double(h-=th) }, "       Compiler: " + std::string( g_compiler ) ) );
 		m_ui.add_control( new san::ui::textbox ( { 10, double(h-=th) }, "     Build type: " + std::string( g_build_type ) ) );
+		m_ui.add_control( new san::ui::textbox ( { 10, double(h-=th) }, "        Threads: " + std::to_string( m_parallel_for.num_threads() ) ) );
 		m_ui.add_control( new san::ui::textbox ( { 10, double(h-=th) }, "Use arrays <- and -> to change image." ) );
 
 		// Add UI algorithms buttons...
@@ -179,7 +180,7 @@ public:
 		// Copy image to window's surface
 		blit( m_backbuffer_copy.get() );
 
-#if 0
+#if 1
 		if ( !m_is_benchmarking ) {
 			//san::stack_blur_naive<san::rgba_calc::naive>( m_backbuffer_view, m_mouse_x );
 			san::stack_blur_naive<san::rgba_calc::sse2>( m_backbuffer_view, m_mouse_x );
@@ -220,8 +221,8 @@ public:
 				double fps = m_bench_interations / sec;
 
 				char buffer[256];
-				std::sprintf( buffer, "%s --- done. %4d iterations in %5.2f sec. %6.2f FPS. %lu MPixels/s.\n",
-					m_bench_name.c_str(), m_bench_interations, sec, fps, uint32_t(width() * height() * fps / 1e6) );
+				std::sprintf( buffer, "%s --- done. %4d iterations in %5.2f sec., %6.2f FPS, ~%.1f ms/frame, %lu MPixels/s.\n",
+					m_bench_name.c_str(), m_bench_interations, sec, fps, ms / m_bench_interations, uint32_t(width() * height() * fps / 1e6) );
 
 				set_title( buffer );
 				std::puts( buffer );

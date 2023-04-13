@@ -27,6 +27,8 @@ static inline uint32_t bit_scan_reverse( uint32_t a ) {
 class sse2 {
 	__m128i m;
 
+	static_assert( alignof( __m128i ) >= 16 );
+
 public:
 	sse2() : m( _mm_setzero_si128() ) {}
 
@@ -35,19 +37,15 @@ public:
 	sse2( uint32_t v ) {
 		__m128i zero = _mm_setzero_si128();
 		m = _mm_unpacklo_epi16( _mm_unpacklo_epi8( _mm_cvtsi32_si128( v ), zero ), zero );
-
-		//return v_interleave_lo_i16( v_interleave_lo_i8( v_load_i32( p ), zero ), zero );
-		//return v_interleave_lo_i16( v_interleave_lo_i8( _mm_set1_epi32( *p ), zero ), zero );
-		//return v_interleave_lo_i16( v_interleave_lo_i8( _mm_loadu_si128( (const __m128i *)p ), zero ), zero );
 	}
 
 	operator __m128i () const { return m; }
 
 	operator uint32_t () const {
 		__m128i zero = _mm_setzero_si128();
-		//v_store_i32( p, v_packs_i16_u8( v_packs_i32_i16( value, zero ), zero ) );
-		//*p = _mm_extract_epi32( v_packs_i16_u8( v_packs_i32_i16( value, zero ), zero ), 0 );
-		return _mm_cvtsi128_si32( _mm_packus_epi16( _mm_packs_epi32( m, zero ), zero ) );
+		//return _mm_extract_epi32( _mm_packs_epi16( _mm_packs_epi32( value, zero ), zero ), 0 );	// _mm_extract_epi32 - SSE4.1
+		//return _mm_cvtsi128_si32( _mm_packus_epi16( _mm_packus_epi32( m, zero ), zero ) );	// unsigned saturation (_mm_packus_epi32 - SSE4.1)
+		return _mm_cvtsi128_si32(  _mm_packs_epi16(  _mm_packs_epi32( m, zero ), zero ) );	// signed saturation
 	}
 
 	sse2 & operator += ( const sse2 & rhs ) {
@@ -61,6 +59,8 @@ public:
 	}
 
 	sse2 operator * ( int value ) const {
+		//return _mm_mullo_epi32( m, _mm_set1_epi32( value ) ); // _mm_mullo_epi32 - SSE4.1
+
 		__m128i v = _mm_set1_epi32( value );
 		__m128i x = _mm_mul_epu32( m, v ); /* mul 2, 0*/
 		__m128i y = _mm_mul_epu32(

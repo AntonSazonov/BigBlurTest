@@ -1,4 +1,4 @@
-# Blur algorithms and implementations test
+# Blur algorithms and implementations test in C++
 
  The Stack Blur algorithm was invented by Mario Klingemann.
  mario@quasimondo.com

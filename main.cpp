@@ -28,11 +28,18 @@
 
 // SIMD impls.
 #include "san_stack_blur_simd_calc_common.hpp"	// Common for SIMD calculator versions (bit scan reverse etc...).
-#include "san_stack_blur_simd_calc_sse2.hpp"	// SSE2 calculator
-#include "san_stack_blur_simd_calc_sse41.hpp"	// SSE41 calculator
+
+#ifdef __SSE2__
+ #include "san_stack_blur_simd_calc_sse2.hpp"	// SSE2 calculator
+#endif
+
+#ifdef __SSE4_1__
+ #include "san_stack_blur_simd_calc_sse41.hpp"	// SSE41 calculator
+#endif
+
 #include "san_stack_blur_simd.hpp"				// Blur impl.
 
-//#include "san_recursive_blur_calc_rgba.hpp"
+#include "san_stack_blur_simd_fastest.hpp"		// The fastest implementation I could write.
 
 #include "main_compile_opts.hpp"
 
@@ -55,25 +62,31 @@ class app final : public sdl::window_rgba {
 	agg_stack_blur_t				m_agg_stack_blur;
 	agg_recursive_blur_t			m_agg_recursive_blur;
 
+	using san_stack_blur_fastest_t	= san::stack_blur::simd::fastest::blur_impl;
+	san_stack_blur_fastest_t		m_san_sb_fastest;
 
 	std::forward_list <std::pair<std::string, std::function <void(int)>>> m_algorithms{
-		{ "agg::recursive_blur::blur"        , std::bind( &agg_recursive_blur_t   ::blur<san::agg_image_adaptor>, m_agg_recursive_blur         , std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) },
-		{ "agg::stack_blur::blur"            , std::bind( &agg_stack_blur_t       ::blur<san::agg_image_adaptor>, m_agg_stack_blur             , std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) },
-		{ "agg::stack_blur_rgba32"           , std::bind( agg::stack_blur_rgba32        <san::agg_image_adaptor>                               , std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::placeholders::_1 ) },
+		{ "agg::recursive_blur::blur"                , std::bind( &agg_recursive_blur_t   ::blur<san::agg_image_adaptor>, m_agg_recursive_blur               , std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) },
+		{ "agg::stack_blur::blur"                    , std::bind( &agg_stack_blur_t       ::blur<san::agg_image_adaptor>, m_agg_stack_blur                   , std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) },
+		{ "agg::stack_blur_rgba32"                   , std::bind( agg::stack_blur_rgba32        <san::agg_image_adaptor>                                     , std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::placeholders::_1 ) },
 
-		{ "san::stack_blur::naive"           , std::bind( san::stack_blur::naive        <san::stack_blur::naive_calc>                          , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
-		{ "san::stack_blur::naive (MT)"      , std::bind( san::stack_blur::naive        <san::stack_blur::naive_calc,        san::parallel_for>, std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
+		{ "san::stack_blur::naive"                   , std::bind( san::stack_blur::naive        <san::stack_blur::naive_calc>                                , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
+		{ "san::stack_blur::naive (MT)"              , std::bind( san::stack_blur::naive        <san::stack_blur::naive_calc,              san::parallel_for>, std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
 
 #ifdef __SSE2__
-		{ "san::stack_blur::simd (SSE2)"     , std::bind( san::stack_blur::simd         <san::stack_blur::calculator::sse2>                    , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
-		{ "san::stack_blur::simd (SSE2, MT)" , std::bind( san::stack_blur::simd         <san::stack_blur::calculator::sse2,  san::parallel_for>, std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
+		{ "san::stack_blur::simd::blur (SSE2)"       , std::bind( san::stack_blur::simd::blur   <san::stack_blur::simd::calculator::sse2>                    , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
+		{ "san::stack_blur::simd::blur (SSE2, MT)"   , std::bind( san::stack_blur::simd::blur   <san::stack_blur::simd::calculator::sse2,  san::parallel_for>, std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
 #endif // __SSE2__
 
 #ifdef __SSE4_1__
-		{ "san::stack_blur::simd (SSE4.1)"   , std::bind( san::stack_blur::simd         <san::stack_blur::calculator::sse41>                   , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
-		{ "san::stack_blur::simd (SSE4.1 MT)", std::bind( san::stack_blur::simd         <san::stack_blur::calculator::sse41, san::parallel_for>, std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
+		{ "san::stack_blur::simd::blur (SSE4.1)"     , std::bind( san::stack_blur::simd::blur   <san::stack_blur::simd::calculator::sse41>                   , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
+		{ "san::stack_blur::simd::blur (SSE4.1 MT)"  , std::bind( san::stack_blur::simd::blur   <san::stack_blur::simd::calculator::sse41, san::parallel_for>, std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
 #endif // __SSE4_1__
-		//{ "san::stack_blur::simd Test       ", std::bind( san::stack_blur::simd         <test_simd_calc                    , san::parallel_for>, std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
+
+#ifdef __SSE2__
+		{ "san::stack_blur::simd::fastest::blur_impl"      , std::bind( &san_stack_blur_fastest_t::blur <san::image_view>                   , m_san_sb_fastest , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
+		{ "san::stack_blur::simd::fastest::blur_impl (MT)" , std::bind( &san_stack_blur_fastest_t::blur <san::image_view, san::parallel_for>, m_san_sb_fastest , std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
+#endif // __SSE2__
 	};
 
 public:
@@ -120,7 +133,7 @@ public:
 
 
 	int m_mouse_x = -1;
-	//int m_mouse_y = -1;
+	int m_mouse_y = -1;
 
 	bool on_event( uint64_t timestamp, SDL_Event * p_event ) override {
 
@@ -130,7 +143,7 @@ public:
 		switch ( p_event->type ) {
 			case SDL_MOUSEMOTION:
 				m_mouse_x = p_event->motion.x;
-				//m_mouse_y = p_event->motion.y;
+				m_mouse_y = p_event->motion.y;
 				break;
 
 			case SDL_KEYDOWN:
@@ -193,11 +206,14 @@ public:
 #if 0
 		if ( !m_is_benchmarking ) {
 			//san::stack_blur::naive<san::stack_blur::naive_calc>( m_backbuffer_view, m_mouse_x );
-			san::stack_blur::simd<san::stack_blur::calculator::sse2>( m_backbuffer_view, m_mouse_x );
+			//san::stack_blur::simd::blur<san::stack_blur::simd::calculator::sse2>( m_backbuffer_view, m_mouse_x );
 
 			//agg::recursive_blur <agg::rgba8, agg::recursive_blur_calc_rgba<float>> rbf;
 			//agg::recursive_blur <agg::rgba8, san::recursive_blur_calc_rgba<double>> rbf;
 			//rbf.blur( m_backbuffer_agg, m_mouse_x );
+
+			san::stack_blur::simd::fastest::blur_impl fb;
+			fb.blur( m_backbuffer_view, m_mouse_x );
 		}
 #endif
 

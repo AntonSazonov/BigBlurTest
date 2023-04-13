@@ -22,10 +22,14 @@
 #include "san_ui_ctrl_button.hpp"
 #include "san_ui_ctrl_checkbox.hpp"
 #include "san_ui_ctrl_text.hpp"
+#include "san_ui_ctrl_link.hpp"
 
-#include "san_rgba_calc_naive.hpp"
-#include "san_rgba_calc_sse2.hpp"
+#include "san_stack_blur_calc_rgba_naive.hpp"
+#include "san_stack_blur_calc_rgba_sse2.hpp"
 #include "san_stack_blur_naive.hpp"
+
+#include "san_recursive_blur_calc_rgba.hpp"
+
 #include "main_compile_opts.hpp"
 
 #include "san_image_list.hpp"
@@ -54,10 +58,10 @@ class app final : public sdl::window_rgba {
 	agg_recursive_blur_mt_t			m_agg_recursive_blur_mt;
 
 	std::forward_list <std::pair<std::string, std::function <void(int)>>> m_algorithms{
-		{ "san::stack_blur_naive"          , std::bind( san::stack_blur_naive         <san::rgba_calc::naive>                                             , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
-		{ "san::stack_blur_naive_mt"       , std::bind( san::stack_blur_naive_mt      <san::rgba_calc::naive,  san::parallel_for>                         , std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
-		{ "san::stack_blur_naive (SSE2)"   , std::bind( san::stack_blur_naive         <san::rgba_calc::sse2>                                              , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
-		{ "san::stack_blur_naive_mt (SSE2)", std::bind( san::stack_blur_naive_mt      <san::rgba_calc::sse2,   san::parallel_for>                         , std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
+		{ "san::stack_blur_naive"          , std::bind( san::stack_blur_naive         <san::stack_blur_calc_rgba::naive>                                             , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
+		{ "san::stack_blur_naive_mt"       , std::bind( san::stack_blur_naive_mt      <san::stack_blur_calc_rgba::naive,  san::parallel_for>                         , std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
+		{ "san::stack_blur_naive (SSE2)"   , std::bind( san::stack_blur_naive         <san::stack_blur_calc_rgba::sse2>                                              , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
+		{ "san::stack_blur_naive_mt (SSE2)", std::bind( san::stack_blur_naive_mt      <san::stack_blur_calc_rgba::sse2,   san::parallel_for>                         , std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
 		{ "agg::stack_blur_rgba32"         , std::bind( agg::stack_blur_rgba32        <san::agg_image_adaptor>                                            , std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::placeholders::_1 ) },
 		{ "agg::stack_blur_rgba32_mt"      , std::bind( agg::stack_blur_rgba32_mt     <san::agg_image_adaptor, san::parallel_for>                         , std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::placeholders::_1, std::ref( m_parallel_for ) ) },
 		{ "agg::stack_blur::blur"          , std::bind( &agg_stack_blur_t       ::blur<san::agg_image_adaptor>,                    m_agg_stack_blur       , std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) },
@@ -65,7 +69,6 @@ class app final : public sdl::window_rgba {
 		{ "agg::recursive_blur::blur"      , std::bind( &agg_recursive_blur_t   ::blur<san::agg_image_adaptor>,                    m_agg_recursive_blur   , std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) },
 		{ "agg::recursive_blur_mt::blur"   , std::bind( &agg_recursive_blur_mt_t::blur<san::agg_image_adaptor, san::parallel_for>, m_agg_recursive_blur_mt, std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
 	};
-
 
 public:
 	app( int width, int height )
@@ -91,6 +94,7 @@ public:
 
 		const int th = 24;
 		int h = m_backbuffer_view.height() - 5;
+		m_ui.add_control( new san::ui::link    ( { 10, double(h-=th) }, "https://github.com/AntonSazonov/Blur_Test" ) );
 		m_ui.add_control( new san::ui::textbox ( { 10, double(h-=th) }, "Compile options: " + std::string( g_compile_options ) ) );
 		m_ui.add_control( new san::ui::textbox ( { 10, double(h-=th) }, "       Compiler: " + std::string( g_compiler ) ) );
 		m_ui.add_control( new san::ui::textbox ( { 10, double(h-=th) }, "     Build type: " + std::string( g_build_type ) ) );
@@ -182,8 +186,12 @@ public:
 
 #if 1
 		if ( !m_is_benchmarking ) {
-			//san::stack_blur_naive<san::rgba_calc::naive>( m_backbuffer_view, m_mouse_x );
-			san::stack_blur_naive<san::rgba_calc::sse2>( m_backbuffer_view, m_mouse_x );
+			//san::stack_blur_naive<san::stack_blur_calc_rgba::naive>( m_backbuffer_view, m_mouse_x );
+			san::stack_blur_naive<san::stack_blur_calc_rgba::sse2>( m_backbuffer_view, m_mouse_x );
+
+			//agg::recursive_blur <agg::rgba8, agg::recursive_blur_calc_rgba<float>> rbf;
+			//agg::recursive_blur <agg::rgba8, san::recursive_blur_calc_rgba<double>> rbf;
+			//rbf.blur( m_backbuffer_agg, m_mouse_x );
 		}
 #endif
 

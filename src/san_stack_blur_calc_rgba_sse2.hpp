@@ -1,12 +1,12 @@
 #pragma once
 
-#if defined( __SSE2__ )
- #include <emmintrin.h>
-#else
- #error "SSE2 not enabled by compiler."
+#if !defined( __SSE2__ )
+ #error "SSE2 not supported or not enabled by compiler."
 #endif
 
-namespace san::rgba_calc {
+#include <emmintrin.h>
+
+namespace san::stack_blur_calc_rgba {
 
 // https://github.com/vectorclass/version2/blob/master/instrset.h
 #if (defined (__GNUC__) || defined(__clang__)) && !defined (_MSC_VER)
@@ -100,4 +100,4 @@ public:
 	}
 }; // struct sse2
 
-} // namespace san::rgba_calc
+} // namespace san::stack_blur_calc_rgba

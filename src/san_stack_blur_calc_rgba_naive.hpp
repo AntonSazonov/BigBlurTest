@@ -1,6 +1,6 @@
 #pragma once
 
-namespace san::rgba_calc {
+namespace san::stack_blur_calc_rgba {
 
 class naive {
 	int	c[4];
@@ -83,4 +83,4 @@ public:
 #endif
 }; // struct naive
 
-} // namespace san::rgba_calc
+} // namespace san::stack_blur_calc_rgba

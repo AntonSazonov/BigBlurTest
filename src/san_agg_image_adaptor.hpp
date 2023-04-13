@@ -3,7 +3,6 @@
 namespace san {
 
 class agg_image_adaptor {
-	//sdl::surface &	m_surface;
 	image_view &	m_image;
 
 	// Bounds

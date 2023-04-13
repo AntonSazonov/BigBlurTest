@@ -12,6 +12,7 @@
 #include "agg/agg_color_rgba.h"
 #include "agg/agg_blur.h"
 
+#include "san_image_list.hpp"
 #include "san_parallel_for.hpp"
 #include "san_image_view.hpp"
 #include "san_agg_image_adaptor.hpp"
@@ -38,12 +39,11 @@
 #endif
 
 #include "san_stack_blur_simd.hpp"				// Blur impl.
-
 #include "san_stack_blur_simd_fastest.hpp"		// The fastest implementation I could write.
 
 #include "main_compile_opts.hpp"
 
-#include "san_image_list.hpp"
+#include "san_recursive.hpp"
 
 class app final : public sdl::window_rgba {
 	std::shared_ptr <SDL_Surface>	m_backbuffer_copy;	// For scaled image
@@ -212,8 +212,14 @@ public:
 			//agg::recursive_blur <agg::rgba8, san::recursive_blur_calc_rgba<double>> rbf;
 			//rbf.blur( m_backbuffer_agg, m_mouse_x );
 
-			san::stack_blur::simd::fastest::blur_impl fb;
-			fb.blur( m_backbuffer_view, m_mouse_x );
+			//san::stack_blur::simd::fastest::blur_impl fb;
+			//fb.blur( m_backbuffer_view, m_mouse_x );
+
+			double r = m_mouse_x * .1;
+			fprintf( stderr, "\r%5.2f", r );
+			san::recursive_blur::blur rb;
+			//rb.blur_x<san::agg_image_adaptor>( m_backbuffer_agg, r );
+			rb.blur_x( m_backbuffer_view, r );
 		}
 #endif
 

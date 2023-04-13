@@ -1,8 +1,8 @@
 # Blur algorithms and implementations test in C++
 
- The Stack Blur algorithm was invented by Mario Klingemann.
- mario@quasimondo.com
- https://medium.com/@quasimondo
+ The Stack Blur algorithm was invented by Mario Klingemann.  
+ mario@quasimondo.com  
+ https://medium.com/@quasimondo  
 
  SSE2 versions are far from ideal (especially division operation), but shows nice results even in naive implementation.
  Do not use SIMD versions with disabled compiler optimizations. They'll be too slow. Use at least -O1 optimization level.

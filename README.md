@@ -1,6 +1,7 @@
 # Blur algorithms and implementations test
 
- Stack Blur algorithm was invented by Mario Klingemann.
+ The Stack Blur algorithm was invented by Mario Klingemann.
+ mario@quasimondo.com
  https://medium.com/@quasimondo
 
  SSE2 versions are far from ideal (especially division operation), but shows nice results even in naive implementation.

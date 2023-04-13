@@ -16,7 +16,7 @@ public:
 				std::shared_ptr <SDL_Surface> image = sdl::load( p.path().string().c_str() );
 				if ( image ) {
 					m_images.push_back( image );
-					std::printf( " ok.\n" );
+					std::printf( " ok. Size: %dx%d\n", image->w, image->h );
 				} else {
 					std::printf( " failed.\n" );
 				}
@@ -39,7 +39,6 @@ public:
 		} else {
 			--m_image_curr;
 		}
-		//blit_selected_image();
 	}
 
 	void go_next() {
@@ -47,7 +46,6 @@ public:
 		if ( m_image_curr == m_images.cend() ) {
 			m_image_curr = m_images.cbegin();
 		}
-		//blit_selected_image();
 	}
 
 }; // class image_list

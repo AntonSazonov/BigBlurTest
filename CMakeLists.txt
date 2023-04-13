@@ -1,16 +1,21 @@
 cmake_minimum_required( VERSION 3.7 )
 
-project( main CXX )
-
-set( CMAKE_CXX_STANDARD 17 )
-set( CMAKE_CXX_STANDARD_REQUIRED ON )
-
 find_program( CCACHE_PROGRAM ccache )
 if( CCACHE_PROGRAM )
 	message( STATUS "Using ccache." )
 	set( CMAKE_C_COMPILER_LAUNCHER ${CCACHE} )
 	set( CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE} )
 endif()
+
+project( main CXX )
+
+set( CMAKE_CXX_STANDARD 17 )
+set( CMAKE_CXX_STANDARD_REQUIRED ON )
+
+set( BLEND2D_STATIC TRUE )
+add_subdirectory( src/blend2d )
+
+
 
 find_package( SDL2 REQUIRED )
 find_package( SDL2_image REQUIRED )
@@ -74,9 +79,6 @@ message( STATUS "       CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}" )
 message( STATUS "  CMAKE_CXX_FLAGS_DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}" )
 message( STATUS "CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}" )
 message( STATUS " -------------------------------------------" )
-
-set( BLEND2D_STATIC TRUE )
-add_subdirectory( src/blend2d )
 
 if( MSVC )
 	target_compile_options( main PRIVATE /W4 )

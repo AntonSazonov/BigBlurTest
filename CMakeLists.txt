@@ -55,6 +55,7 @@ add_executable( main
 	src/san_stack_blur_simd_calc_common.hpp
 	src/san_stack_blur_simd_calc_sse2.hpp
 	src/san_stack_blur_simd_calc_sse41.hpp
+	src/san_stack_blur_simd_fastest.hpp
 
 	#san_recursive_blur_calc_rgba.hpp
 

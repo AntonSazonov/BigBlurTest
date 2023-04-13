@@ -4,8 +4,7 @@
  #error "At least SSE2 support must be enabled."
 #endif
 
-// __SSE2__
-#include <emmintrin.h>
+#include <emmintrin.h> // __SSE2__
 
 #ifdef __SSE4_1__
  #include <smmintrin.h>

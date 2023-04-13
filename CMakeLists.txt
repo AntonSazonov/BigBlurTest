@@ -5,12 +5,17 @@ project( main CXX )
 set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
+find_program( CCACHE_PROGRAM ccache )
+if( CCACHE_PROGRAM )
+	message( STATUS "Using ccache." )
+	set( CMAKE_C_COMPILER_LAUNCHER ${CCACHE} )
+	set( CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE} )
+endif()
+
 find_package( SDL2 REQUIRED )
 find_package( SDL2_image REQUIRED )
 
 set( COMPILE_OPTS_FILE ${CMAKE_CURRENT_SOURCE_DIR}/main_compile_opts.hpp )
-
-#list( TRANSFORM SRC PREPEND "src/" )
 
 add_executable( main
 	main.cpp
@@ -25,8 +30,7 @@ add_executable( main
 	src/agg/agg_color_rgba.h
 	src/agg/agg_config.h
 	src/agg/agg_pixfmt_transposer.h
-	src/agg/agg_stack_blur_mt.hpp
-	src/agg/agg_recursive_blur_mt.hpp
+
 	src/san_agg_image_adaptor.hpp
 
 	src/san_ui.hpp
@@ -38,17 +42,31 @@ add_executable( main
 	src/san_ui_ctrl_link.hpp
 
 	src/san_image_view.hpp
-	src/san_stack_blur_calc_rgba_naive.hpp
-	src/san_stack_blur_calc_rgba_sse2.hpp
-	src/san_stack_blur_naive.hpp
 
-	san_recursive_blur_calc_rgba.hpp
+	src/san_stack_blur_naive.hpp
+	src/san_stack_blur_naive_calc.hpp
+
+	src/san_stack_blur_simd.hpp
+	src/san_stack_blur_simd_calc_common.hpp
+	src/san_stack_blur_simd_calc_sse2.hpp
+	src/san_stack_blur_simd_calc_sse41.hpp
+
+	#san_recursive_blur_calc_rgba.hpp
 
 	src/san_image_list.hpp
 
 	${COMPILE_OPTS_FILE} )
 
-# Force -O0 flag for debug build
+#[[
+target_precompile_headers( main PUBLIC
+	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_array.h$<ANGLE-R>>"
+	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_basics.h$<ANGLE-R>>"
+	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_blur.h$<ANGLE-R>>"
+	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_color_rgba.h$<ANGLE-R>>"
+	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_config.h$<ANGLE-R>>"
+	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_pixfmt_transposer.h$<ANGLE-R>>" )
+]]
+
 set( CMAKE_CXX_FLAGS_DEBUG "-O1 ${CMAKE_CXX_FLAGS_DEBUG}" )
 
 message( STATUS " -------------------------------------------" )
@@ -63,7 +81,7 @@ add_subdirectory( src/blend2d )
 if( MSVC )
 	target_compile_options( main PRIVATE /W4 )
 else()
-	target_compile_options( main PRIVATE -Wall -fno-exceptions -fno-rtti ) # -msse2 -Wextra -Wpedantic
+	target_compile_options( main PRIVATE -march=native -Wall -fno-exceptions -fno-rtti ) # -msse2 -Wextra -Wpedantic
 endif()
 
 
@@ -74,8 +92,6 @@ if( CMAKE_BUILD_TYPE STREQUAL "Debug" )
 else()
 	set( COMPILE_OPTS "${CMAKE_CXX_FLAGS_RELEASE} ${COMPILE_OPTS}" )
 endif()
-
-#message( STATUS " *** COMPILE_OPTS: ${COMPILE_OPTS}" )
 
 add_custom_command(
 	OUTPUT ${COMPILE_OPTS_FILE}
@@ -88,13 +104,13 @@ add_custom_command(
 add_custom_target( compile_opts DEPENDS ${COMPILE_OPTS_FILE} )
 add_dependencies( main compile_opts )
 
-#target_compile_options    ( main PRIVATE -Wall -Wextra -Wpedantic -fno-exceptions -fno-rtti ) # -msse2
 target_link_options       ( main PRIVATE -mconsole -s ) # -s -static
 
 target_include_directories( main PRIVATE ${CMAKE_SOURCE_DIR} )
 target_include_directories( main PRIVATE ${CMAKE_SOURCE_DIR}/src )
 target_link_libraries     ( main PRIVATE SDL2::SDL2 SDL2_image::SDL2_image blend2d::blend2d )
 set_target_properties     ( main PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR} )
+set_target_properties     ( main PROPERTIES OUTPUT_NAME "${CMAKE_PROJECT_NAME}-${CMAKE_CXX_COMPILER_ID}-${CMAKE_BUILD_TYPE}" )
 
 # Remove COMPILE_OPTS_FILE...
 add_custom_command( TARGET main PRE_BUILD

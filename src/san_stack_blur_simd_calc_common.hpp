@@ -1,6 +1,6 @@
 #pragma once
 
-namespace san::stack_blur::calculator {
+namespace san::stack_blur::simd::calculator {
 
 // https://github.com/vectorclass/version2/blob/master/instrset.h
 #if (defined (__GNUC__) || defined(__clang__)) && !defined (_MSC_VER)
@@ -41,4 +41,4 @@ public:
 	const __m128i & shift2() const { return m_shift2; }
 }; // class divisor
 
-} // namespace san::stack_blur::calculator
+} // namespace san::stack_blur::simd::calculator

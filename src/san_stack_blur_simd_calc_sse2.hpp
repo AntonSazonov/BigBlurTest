@@ -6,7 +6,7 @@
 
 #include <emmintrin.h>
 
-namespace san::stack_blur::calculator {
+namespace san::stack_blur::simd::calculator {
 
 class sse2 {
 	__m128i m;
@@ -68,4 +68,4 @@ public:
 	}
 }; // class sse2
 
-} // namespace san::stack_blur::calculator
+} // namespace san::stack_blur::simd::calculator

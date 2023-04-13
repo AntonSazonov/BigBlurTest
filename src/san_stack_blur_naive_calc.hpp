@@ -1,23 +1,23 @@
 #pragma once
 
-namespace san::stack_blur_calc_rgba {
+namespace san::stack_blur {
 
-class naive {
+class naive_calc {
 	int	c[4];
 
 public:
-	naive() {
+	naive_calc() {
 		c[0] = c[1] = c[2] = c[3] = 0;
 	}
 
-	naive( int x, int y, int z, int w ) {
+	naive_calc( int x, int y, int z, int w ) {
 		c[0] = x;
 		c[1] = y;
 		c[2] = z;
 		c[3] = w;
 	}
 
-	naive( uint32_t value ) {
+	naive_calc( uint32_t value ) {
 		c[3] = (value >> 24) & 0xff;
 		c[2] = (value >> 16) & 0xff;
 		c[1] = (value >>  8) & 0xff;
@@ -31,7 +31,7 @@ public:
 			    (c[0] & 0xff);
 	}
 
-	naive & operator = ( uint32_t value ) {
+	naive_calc & operator = ( uint32_t value ) {
 		c[3] = (value >> 24) & 0xff;
 		c[2] = (value >> 16) & 0xff;
 		c[1] = (value >>  8) & 0xff;
@@ -39,7 +39,7 @@ public:
 		return *this;
 	}
 
-	naive & operator += ( const naive & rhs ) {
+	naive_calc & operator += ( const naive_calc & rhs ) {
 		c[0] += rhs.c[0];
 		c[1] += rhs.c[1];
 		c[2] += rhs.c[2];
@@ -47,7 +47,7 @@ public:
 		return *this;
 	}
 
-	naive & operator -= ( const naive & rhs ) {
+	naive_calc & operator -= ( const naive_calc & rhs ) {
 		c[0] -= rhs.c[0];
 		c[1] -= rhs.c[1];
 		c[2] -= rhs.c[2];
@@ -55,16 +55,16 @@ public:
 		return *this;
 	}
 
-	naive operator * ( int value ) const {
-		return naive(
+	naive_calc operator * ( int value ) const {
+		return naive_calc(
 			c[0] * value,
 			c[1] * value,
 			c[2] * value,
 			c[3] * value );
 	}
 
-	naive operator / ( int value ) const {
-		return naive(
+	naive_calc operator / ( int value ) const {
+		return naive_calc(
 			c[0] / value,
 			c[1] / value,
 			c[2] / value,
@@ -73,14 +73,14 @@ public:
 
 #if 0
 	// May be will be used later...
-	naive operator >> ( uint8_t value ) const {
-		return naive(
+	naive_calc operator >> ( uint8_t value ) const {
+		return naive_calc(
 			c[0] >> value,
 			c[1] >> value,
 			c[2] >> value,
 			c[3] >> value );
 	}
 #endif
-}; // struct naive
+}; // struct naive_calc
 
-} // namespace san::stack_blur_calc_rgba
+} // namespace san::stack_blur

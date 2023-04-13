@@ -73,7 +73,7 @@ target_precompile_headers( main PUBLIC
 	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_pixfmt_transposer.h$<ANGLE-R>>" )
 ]]
 
-set( CMAKE_CXX_FLAGS_DEBUG "-O1 ${CMAKE_CXX_FLAGS_DEBUG}" )
+set( CMAKE_CXX_FLAGS_DEBUG "-O0 ${CMAKE_CXX_FLAGS_DEBUG}" )
 
 message( STATUS " -------------------------------------------" )
 message( STATUS "       CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}" )

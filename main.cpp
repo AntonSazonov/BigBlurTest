@@ -203,7 +203,7 @@ public:
 		// Copy image to window's surface
 		blit( m_backbuffer_copy.get() );
 
-#if 0
+#if 1
 		if ( !m_is_benchmarking ) {
 			//san::stack_blur::naive<san::stack_blur::naive_calc>( m_backbuffer_view, m_mouse_x );
 			//san::stack_blur::simd::blur<san::stack_blur::simd::calculator::sse2>( m_backbuffer_view, m_mouse_x );

@@ -58,11 +58,20 @@ public:
 	operator __m128i () const { return m_vec; }
 
 	operator uint32_t () const {
+#ifdef __SSSE3__
+#warning "Using SSSE3"
+		// Seems to be faster...
+		__m128i s = _mm_setr_epi8( 0,  4,  8, 12, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 );
+		return _mm_cvtsi128_si32( _mm_shuffle_epi8( m_vec, s ) ); // SSSE3
+#else
 		__m128i zero = _mm_setzero_si128();
 #ifdef __SSE4_1__
+#warning "Using SSE4.1"
 		return _mm_cvtsi128_si32( _mm_packus_epi16( _mm_packus_epi32( m_vec, zero ), zero ) ); // unsigned saturation (_mm_packus_epi32 - SSE4.1)
 #else
+#warning "Using SSE2"
 		return _mm_cvtsi128_si32(  _mm_packs_epi16(  _mm_packs_epi32( m_vec, zero ), zero ) ); // signed saturation
+#endif
 #endif
 	}
 
@@ -109,32 +118,42 @@ class blur_impl {
 
 		uint32_t * p_stack = (uint32_t *)__builtin_alloca_with_align( sizeof( uint32_t ) * m_div, 128 );
 
-		// Fill initial stack...
-		sse128_t sum, sum_in, sum_out;
-		for ( int i = -m_radius; i <= m_radius; i++ ) {
-
-			// Clip begin
-			uint32_t c;
-			if ( i <= 0 ) {
-				c = p_line[0];
-			} else {
-				c = p_line[i * advance];
-			}
-
-			p_stack[i + m_radius] = c;
-
-			sum += sse128_t( c ) * (m_radius - std::abs( i ) + 1);
-			if ( i <= 0 ) {
-				sum_out += c;
-			} else {
-				sum_in  += c;
+		// Accum. left part of stack (border color)...
+		uint32_t * p_stk = p_stack;
+		sse128_t sum, sum_out;
+		{
+			uint32_t c = *p_line;
+			sse128_t v( c );
+			for ( int i = 0; i <= m_radius; i++ ) {
+				*p_stk++ = c;
+				sum     += v * (i + 1);
+				sum_out += v;
 			}
 		}
 
-		int i_stack = m_radius;
-		for ( int i = 0; i < len; i++ ) {
-			p_line[i * advance] = sum * m_mul >> m_shr;
+		// Accum. right part of stack...
+		sse128_t sum_in;
+		{
+			uint32_t * p_src = p_line;
+			int j = m_radius;
+			for ( int i = 1; i <= m_radius; i++, j-- ) {
+				if ( i < len ) p_src += advance;
+				uint32_t c = *p_src;
+				*p_stk++ = c;
+				sse128_t v( c );
+				sum    += v * j;
+				sum_in += v;
+			}
+		}
 
+
+		int i_stack = m_radius;
+		uint32_t * p_src = p_line + advance * (m_radius + 1);
+		uint32_t * p_end = p_line + advance * (len - 1);
+		uint32_t * p_dst = p_line;
+
+		for ( ; len-- > 0; p_dst += advance ) {
+			*p_dst = sum * m_mul >> m_shr;
 			sum -= sum_out;
 
 			int stack_start = i_stack + m_div - m_radius;
@@ -142,21 +161,19 @@ class blur_impl {
 
 			sum_out -= p_stack[stack_start];
 
-			// Clip end
-			int j = i + m_radius + 1;
 			uint32_t c;
-			if ( j >= len ) {
-				c = p_line[(len - 1) * advance];
+			if ( p_src <= p_end ) {
+				c = *p_src;
+				p_src += advance;
 			} else {
-				c = p_line[j * advance];
+				c = *p_end;
 			}
 
 			p_stack[stack_start] = c;
 			sum_in += c;
 			sum    += sum_in;
 
-			i_stack++;
-			if ( i_stack >= m_div ) i_stack = 0;
+			if ( ++i_stack >= m_div ) i_stack = 0;
 
 			c = p_stack[i_stack];
 			sum_out += c;

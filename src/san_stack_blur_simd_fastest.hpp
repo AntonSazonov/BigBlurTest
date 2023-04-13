@@ -137,7 +137,7 @@ class blur_impl {
 			uint32_t * p_src = p_line;
 			int j = m_radius;
 			for ( int i = 1; i <= m_radius; i++, j-- ) {
-				if ( i < len ) p_src += advance;
+				if ( __builtin_expect( i < len, 1 ) ) p_src += advance;
 				uint32_t c = *p_src;
 				*p_stk++ = c;
 				sse128_t v( c );
@@ -162,7 +162,7 @@ class blur_impl {
 			sum_out -= p_stack[stack_start];
 
 			uint32_t c;
-			if ( p_src <= p_end ) {
+			if ( __builtin_expect( p_src <= p_end, 1 ) ) {
 				c = *p_src;
 				p_src += advance;
 			} else {

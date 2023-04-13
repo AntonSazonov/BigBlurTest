@@ -1,4 +1,4 @@
-# Blur algorithms and implementations test in C++
+# Blur Algorithms and Implementations Test in C++
 
 Tested algorithms and implementations:
  * Stack Blur (from Anti-Grain Geometry 2.5 by Maxim Shemanarev).

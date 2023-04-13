@@ -35,18 +35,21 @@ add_executable( main
 	src/san_ui_ctrl_button.hpp
 	src/san_ui_ctrl_checkbox.hpp
 	src/san_ui_ctrl_text.hpp
+	src/san_ui_ctrl_link.hpp
 
 	src/san_image_view.hpp
-	src/san_rgba_calc_naive.hpp
-	src/san_rgba_calc_sse2.hpp
+	src/san_stack_blur_calc_rgba_naive.hpp
+	src/san_stack_blur_calc_rgba_sse2.hpp
 	src/san_stack_blur_naive.hpp
+
+	san_recursive_blur_calc_rgba.hpp
 
 	src/san_image_list.hpp
 
 	${COMPILE_OPTS_FILE} )
 
 # Force -O0 flag for debug build
-set( CMAKE_CXX_FLAGS_DEBUG "-O0 ${CMAKE_CXX_FLAGS_DEBUG}" )
+set( CMAKE_CXX_FLAGS_DEBUG "-O1 ${CMAKE_CXX_FLAGS_DEBUG}" )
 
 message( STATUS " -------------------------------------------" )
 message( STATUS "       CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}" )

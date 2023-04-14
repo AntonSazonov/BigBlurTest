@@ -122,11 +122,10 @@ class blur_impl {
 		{
 			uint32_t c = *p_line;
 			sse128_t v( c );
-			for ( int i = 0; i <= m_radius; i++ ) {
-				*p_stk++ = c;
-				sum     += v * (i + 1);
-				sum_out += v;
-			}
+			for ( int i = 0; i <= m_radius; i++ ) *p_stk++ = c;
+			int n = m_radius + 1;
+			sum = v * ((n * (n + 1)) >> 1); // sum = 1v + 2v + 3v + ... + Nv, where N = m_radius + 1
+			sum_out = v * n;
 		}
 
 		// Accum. right part of stack...
@@ -146,7 +145,6 @@ class blur_impl {
 			// At now, p_src == p_line + (m_radius * advance);
 			assert( p_src == p_line + (m_radius * advance) );
 		}
-
 
 
 		int i_stack = m_radius;

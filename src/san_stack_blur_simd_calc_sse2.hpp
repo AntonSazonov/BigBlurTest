@@ -1,8 +1,8 @@
 #pragma once
 
-#if !defined( __SSE2__ )
- #error "SSE2 not supported or not enabled by compiler."
-#endif
+#ifndef __SSE2__
+ #warning "SSE2 not supported or not enabled by compiler."
+#else
 
 #include <emmintrin.h>
 
@@ -69,3 +69,5 @@ public:
 }; // class sse2
 
 } // namespace san::stack_blur::simd::calculator
+
+#endif // __SSE2__

@@ -12,6 +12,7 @@
 #include "agg/agg_color_rgba.h"
 #include "agg/agg_blur.h"
 
+#include "san_image_list.hpp"
 #include "san_parallel_for.hpp"
 #include "san_image_view.hpp"
 #include "san_agg_image_adaptor.hpp"
@@ -28,22 +29,18 @@
 
 // SIMD impls.
 #include "san_stack_blur_simd_calc_common.hpp"	// Common for SIMD calculator versions (bit scan reverse etc...).
-
-#ifdef __SSE2__
- #include "san_stack_blur_simd_calc_sse2.hpp"	// SSE2 calculator
-#endif
-
-#ifdef __SSE4_1__
- #include "san_stack_blur_simd_calc_sse41.hpp"	// SSE41 calculator
-#endif
-
+#include "san_stack_blur_simd_calc_sse2.hpp"	// SSE2 calculator
+#include "san_stack_blur_simd_calc_sse41.hpp"	// SSE41 calculator
 #include "san_stack_blur_simd.hpp"				// Blur impl.
 
-#include "san_stack_blur_simd_fastest.hpp"		// The fastest implementation I could write.
+#include "san_stack_blur_simd_fastest.hpp"		// Optimization tests...
+#include "san_stack_blur_simd_fastest_2.hpp"
 
 #include "main_compile_opts.hpp"
 
-#include "san_image_list.hpp"
+//#include "san_recursive.hpp"
+//#include "san_test_sb.hpp"
+//#include "san_test_naive.hpp"
 
 class app final : public sdl::window_rgba {
 	std::shared_ptr <SDL_Surface>	m_backbuffer_copy;	// For scaled image
@@ -62,8 +59,13 @@ class app final : public sdl::window_rgba {
 	agg_stack_blur_t				m_agg_stack_blur;
 	agg_recursive_blur_t			m_agg_recursive_blur;
 
-	using san_stack_blur_fastest_t	= san::stack_blur::simd::fastest::blur_impl;
-	san_stack_blur_fastest_t		m_san_sb_fastest;
+	using san_stack_blur_fastest_t		= san::stack_blur::simd::fastest::blur_impl;
+	san_stack_blur_fastest_t			m_san_sb_fastest;
+
+	using san_stack_blur_fastest_2_t	= san::stack_blur::simd::fastest_2::blur_impl;
+	san_stack_blur_fastest_2_t			m_san_sb_fastest_2;
+
+	//san::test::blur_impl			m_san_sb_test;
 
 	std::forward_list <std::pair<std::string, std::function <void(int)>>> m_algorithms{
 		{ "agg::recursive_blur::blur"                , std::bind( &agg_recursive_blur_t   ::blur<san::agg_image_adaptor>, m_agg_recursive_blur               , std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) },
@@ -84,8 +86,11 @@ class app final : public sdl::window_rgba {
 #endif // __SSE4_1__
 
 #ifdef __SSE2__
-		{ "san::stack_blur::simd::fastest::blur_impl"      , std::bind( &san_stack_blur_fastest_t::blur <san::image_view>                   , m_san_sb_fastest , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
-		{ "san::stack_blur::simd::fastest::blur_impl (MT)" , std::bind( &san_stack_blur_fastest_t::blur <san::image_view, san::parallel_for>, m_san_sb_fastest , std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
+		{ "san::stack_blur::simd::fastest::blur_impl"        , std::bind( &san_stack_blur_fastest_t  ::blur <san::image_view>                   , m_san_sb_fastest  , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
+		{ "san::stack_blur::simd::fastest::blur_impl (MT)"   , std::bind( &san_stack_blur_fastest_t  ::blur <san::image_view, san::parallel_for>, m_san_sb_fastest  , std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
+		{ "san::stack_blur::simd::fastest::blur_impl (MT) 2" , std::bind( &san_stack_blur_fastest_2_t::blur <san::image_view, san::parallel_for>, m_san_sb_fastest_2, std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
+
+		//{ "san::test::blur_impl (MT)"                      , std::bind( &san::test::blur_impl::blur     <san::image_view, san::parallel_for>, m_san_sb_test    , std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
 #endif // __SSE2__
 	};
 
@@ -212,8 +217,22 @@ public:
 			//agg::recursive_blur <agg::rgba8, san::recursive_blur_calc_rgba<double>> rbf;
 			//rbf.blur( m_backbuffer_agg, m_mouse_x );
 
-			san::stack_blur::simd::fastest::blur_impl fb;
-			fb.blur( m_backbuffer_view, m_mouse_x );
+			//san::stack_blur::simd::fastest::blur_impl fb;
+			//fb.blur( m_backbuffer_view, m_mouse_x );
+
+
+			// Test impl.
+			//san::test::blur_impl fb;
+			//san::test::naive::blur_impl fb;
+			//fb.blur( m_backbuffer_view, m_mouse_x );
+
+#if 0
+			double r = m_mouse_x * .1;
+			fprintf( stderr, "\r%5.2f", r );
+			san::recursive_blur::blur rb;
+			//rb.blur_x<san::agg_image_adaptor>( m_backbuffer_agg, r );
+			rb.blur_x( m_backbuffer_view, r );
+#endif
 		}
 #endif
 

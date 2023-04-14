@@ -8,13 +8,25 @@ namespace san::ui {
 
 class ui;
 
+#if 0
+enum class alignment : uint8_t {
+	left	= 0,
+	right,
+	top,
+	bottom,
+	center
+}; // enum class alignment
+#endif
+
 class control {
 	control( const control & ) = delete;
 	control & operator = ( const control & ) = delete;
 
 protected:
-	bool	m_visible	= true;
-	BLRect	m_rect;
+	bool		m_visible	= true;
+	//alignment	m_align_h	= alignment::left;
+	//alignment	m_align_v	= alignment::top;
+	BLRect		m_rect;
 
 public:
 	control( const BLRect & rect ) : m_rect( rect ) {

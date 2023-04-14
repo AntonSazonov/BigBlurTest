@@ -13,8 +13,7 @@ set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 set( BLEND2D_STATIC TRUE )
-add_subdirectory( src/blend2d )
-
+add_subdirectory( src/blend2d "${CMAKE_SOURCE_DIR}/_build_blend2d_${CMAKE_BUILD_TYPE}" )
 
 
 find_package( SDL2 REQUIRED )
@@ -56,6 +55,7 @@ add_executable( main
 	src/san_stack_blur_simd_calc_sse2.hpp
 	src/san_stack_blur_simd_calc_sse41.hpp
 	src/san_stack_blur_simd_fastest.hpp
+	src/san_stack_blur_simd_fastest_2.hpp
 
 	#san_recursive_blur_calc_rgba.hpp
 
@@ -63,17 +63,17 @@ add_executable( main
 
 	${COMPILE_OPTS_FILE} )
 
-#[[
 target_precompile_headers( main PUBLIC
+	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_color_rgba.h$<ANGLE-R>>"
+	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_blur.h$<ANGLE-R>>"
 	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_array.h$<ANGLE-R>>"
 	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_basics.h$<ANGLE-R>>"
-	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_blur.h$<ANGLE-R>>"
-	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_color_rgba.h$<ANGLE-R>>"
 	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_config.h$<ANGLE-R>>"
 	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_pixfmt_transposer.h$<ANGLE-R>>" )
+#[[
 ]]
 
-set( CMAKE_CXX_FLAGS_DEBUG "-O0 ${CMAKE_CXX_FLAGS_DEBUG}" )
+set( CMAKE_CXX_FLAGS_DEBUG "-O1 ${CMAKE_CXX_FLAGS_DEBUG}" )
 
 message( STATUS " -------------------------------------------" )
 message( STATUS "       CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}" )
@@ -104,11 +104,9 @@ add_custom_command(
 	VERBATIM
 )
 
-add_custom_target( compile_opts DEPENDS ${COMPILE_OPTS_FILE} )
-add_dependencies( main compile_opts )
-
+add_custom_target         ( opts DEPENDS ${COMPILE_OPTS_FILE} )
+add_dependencies          ( main opts )
 target_link_options       ( main PRIVATE -mconsole -s ) # -s -static
-
 target_include_directories( main PRIVATE ${CMAKE_SOURCE_DIR} )
 target_include_directories( main PRIVATE ${CMAKE_SOURCE_DIR}/src )
 target_link_libraries     ( main PRIVATE SDL2::SDL2 SDL2_image::SDL2_image blend2d::blend2d )

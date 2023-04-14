@@ -10,7 +10,7 @@
  #include <smmintrin.h>
 #endif
 
-namespace san::stack_blur::simd::fastest {
+namespace san::stack_blur::simd::fastest_2 {
 
 namespace internal {
 
@@ -122,11 +122,10 @@ class blur_impl {
 		{
 			uint32_t c = *p_line;
 			sse128_t v( c );
-			for ( int i = 0; i <= m_radius; i++ ) {
-				*p_stk++ = c;
-				sum     += v * (i + 1);
-				sum_out += v;
-			}
+			for ( int i = 0; i <= m_radius; i++ ) *p_stk++ = c;
+			int n = m_radius + 1;
+			sum = v * ((n * (n + 1)) >> 1); // sum = 1v + 2v + 3v + ... + Nv, where N = m_radius + 1
+			sum_out = v * n;
 		}
 
 		// Accum. right part of stack...
@@ -142,15 +141,22 @@ class blur_impl {
 				sum    += v * j;
 				sum_in += v;
 			}
+
+			// At now, p_src == p_line + (m_radius * advance);
+			assert( p_src == p_line + (m_radius * advance) );
 		}
 
 
 		int i_stack = m_radius;
 		uint32_t * p_src = p_line + advance * (m_radius + 1);
-		uint32_t * p_end = p_line + advance * (len - 1);
 		uint32_t * p_dst = p_line;
 
-		for ( ; len-- > 0; p_dst += advance ) {
+		// TODO: handle that case
+		assert( len >= m_radius + 1 );
+		//int l = len - (m_radius + 1);
+		len -= m_radius + 1;
+
+		while ( len-- > 0 ) {
 			*p_dst = sum * m_mul >> m_shr;
 			sum -= sum_out;
 
@@ -159,23 +165,49 @@ class blur_impl {
 
 			sum_out -= p_stack[stack_start];
 
-			uint32_t c;
-			if ( __builtin_expect( p_src <= p_end, 1 ) ) {
-				c = *p_src;
-				p_src += advance;
-			} else {
-				c = *p_end;
-			}
-
+			uint32_t c = *p_src;
 			p_stack[stack_start] = c;
 			sum_in += c;
 			sum    += sum_in;
 
 			if ( ++i_stack >= m_div ) i_stack = 0;
 
-			c = p_stack[i_stack];
+			sse128_t v = p_stack[i_stack];
+			sum_out += v;
+			sum_in  -= v;
+
+			p_src += advance;
+			p_dst += advance;
+		}
+
+		// At now, p_src == p_line + (len * advance);
+		//assert( p_src == p_line + (len * advance) );
+
+		p_src -= advance;
+		uint32_t border_c = *p_src;
+		sse128_t border_v( border_c );
+
+		for ( len = m_radius; len >= 0; len-- ) {
+			*p_dst = sum * m_mul >> m_shr;
+			sum -= sum_out;
+
+			int stack_start = i_stack + m_div - m_radius;
+			if ( stack_start >= m_div ) stack_start -= m_div;
+
+			sum_out -= p_stack[stack_start];
+
+			p_stack[stack_start] = border_c;
+			sum_in += border_v;
+			sum    += sum_in;
+
+			if ( ++i_stack >= m_div ) i_stack = 0;
+
+			sse128_t c = p_stack[i_stack];
 			sum_out += c;
 			sum_in  -= c;
+
+			//p_src += advance;
+			p_dst += advance;
 		}
 	}
 
@@ -219,4 +251,4 @@ public:
 	}
 }; // class blur_impl
 
-} // namespace san::stack_blur::simd::fastest
+} // namespace san::stack_blur::simd::fastest_2

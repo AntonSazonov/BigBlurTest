@@ -1,6 +1,8 @@
 #ifndef AGG_CONFIG_INCLUDED
 #define AGG_CONFIG_INCLUDED
 
+#include <cstdint> // san
+
 // This file can be used to redefine certain data types.
 
 //---------------------------------------

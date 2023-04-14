@@ -1,4 +1,5 @@
 _build*
+_backup
 _*.txt
 _*.h
 _*.hpp

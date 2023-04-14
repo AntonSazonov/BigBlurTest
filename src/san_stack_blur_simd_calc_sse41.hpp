@@ -1,8 +1,8 @@
 #pragma once
 
-#if !defined( __SSE4_1__ )
- #error "SSE4.1 not supported or not enabled by compiler."
-#endif
+#ifndef __SSE4_1__
+ #warning "SSE4.1 not supported or not enabled by compiler."
+#else
 
 #include <smmintrin.h>
 
@@ -59,3 +59,5 @@ public:
 }; // class sse41
 
 } // namespace san::stack_blur::simd::calculator
+
+#endif

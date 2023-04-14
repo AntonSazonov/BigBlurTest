@@ -38,8 +38,9 @@
 
 #include "main_compile_opts.hpp"
 
-#include "san_recursive.hpp"
-#include "san_test_sb.hpp"
+//#include "san_recursive.hpp"
+//#include "san_test_sb.hpp"
+//#include "san_test_naive.hpp"
 
 class app final : public sdl::window_rgba {
 	std::shared_ptr <SDL_Surface>	m_backbuffer_copy;	// For scaled image
@@ -221,8 +222,9 @@ public:
 
 
 			// Test impl.
-//			san::test::blur_impl fb;
-//			fb.blur( m_backbuffer_view, width() - m_mouse_x );
+			//san::test::blur_impl fb;
+			//san::test::naive::blur_impl fb;
+			//fb.blur( m_backbuffer_view, m_mouse_x );
 
 #if 0
 			double r = m_mouse_x * .1;

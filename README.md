@@ -1,4 +1,5 @@
 # Blur Algorithms and Implementations Test in C++
+![example workflow](https://github.com/AntonSazonov/OpenGL_GLSL_Blur/actions/workflows/cmake.yml/badge.svg)
 
 Tested algorithms and implementations:
  * Stack Blur (from Anti-Grain Geometry 2.5 by Maxim Shemanarev).

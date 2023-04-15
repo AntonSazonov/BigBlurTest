@@ -27,7 +27,7 @@ public:
 
 	operator uint32_t () const {
 		__m128i zero = _mm_setzero_si128();
-		return _mm_cvtsi128_si32(  _mm_packs_epi16(  _mm_packs_epi32( m, zero ), zero ) );	// signed saturation
+		return _mm_cvtsi128_si32(  _mm_packus_epi16(  _mm_packs_epi32( m, zero ), zero ) );
 	}
 
 	sse2 & operator += ( const sse2 & rhs ) {

@@ -3,10 +3,10 @@
 [![GitHub code size](https://img.shields.io/github/languages/code-size/AntonSazonov/Blur_Test?style=flat)](https://github.com/AntonSazonov/Blur_Test)
 
 Tested algorithms and implementations:
- * Stack Blur (from Anti-Grain Geometry 2.5 by Maxim Shemanarev).
- * Recursive Blur (from Anti-Grain Geometry 2.5 by Maxim Shemanarev).
- * My unoptimized implementation of Stack Blur.
- * My optimized implementations of Stack Blur using SSE2, SSE3, SSE4.1 and multithreading.
+ * **Stack Blur** <sub>(Anti-Grain Geometry 2.5 by Maxim Shemanarev)</sub>
+ * **Recursive Blur** <sub>(Anti-Grain Geometry 2.5 by Maxim Shemanarev)</sub>
+ * **My unoptimized implementation of Stack Blur**
+ * **My optimized implementations of Stack Blur using SSE2, SSSE3, SSE4.1 and multithreading**
 
 The Stack Blur algorithm was invented by Mario Klingemann.  
 mario@quasimondo.com  

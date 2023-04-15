@@ -121,12 +121,14 @@ public:
 		m_mul = ::san::stack_blur::lut_mul[radius];
 		m_shr = ::san::stack_blur::lut_shr[radius];
 
+		// Horizontal pass...
 		parallel_for.run_and_wait( 0, image.height(), [&]( int a, int b ) {
 			for ( int y = a; y < b; y++ ) {
 				line_process( (uint32_t *)image.row_ptr( y ), image.width(), 1 );
 			}
 		}, override_num_threads );
 
+		// Vertical pass...
 		parallel_for.run_and_wait( 0, image.width(), [&]( int a, int b ) {
 			for ( int x = a; x < b; x++ ) {
 				line_process( (uint32_t *)image.col_ptr( x ), image.height(), image.stride() / 4 );

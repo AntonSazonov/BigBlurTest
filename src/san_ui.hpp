@@ -36,9 +36,9 @@ public:
 
 	//ui( san::image_view & surface, double font_size = 32. ) : m_font_size( font_size ) {
 
-	template <typename WindowType>
-	ui( WindowType & window, double font_size = 32. ) : m_font_size( font_size ) {
-		m_image.createFromData( window.width(), window.height(), BL_FORMAT_XRGB32, window.ptr(), window.stride() );
+	//template <typename WindowType>
+	ui( san::image_view & image, double font_size = 32. ) : m_font_size( font_size ) {
+		m_image.createFromData( image.width(), image.height(), BL_FORMAT_XRGB32, image.ptr(), image.stride() );
 
 		load_font( m_face_sans, "./fonts/NotoSans-Regular.ttf" );
 		load_font( m_face_mono, "./fonts/SourceCodePro-Medium.otf" );

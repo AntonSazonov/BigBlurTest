@@ -43,7 +43,7 @@ public:
 #endif
 
 // Common for all SSE variants
-template <int SSEx = 2>
+template <int SSE = 2>
 class sse128_u32_t {
 	__m128i m_vec;
 
@@ -53,7 +53,7 @@ public:
 	sse128_u32_t( const __m128i & v ) : m_vec( v ) {}
 
 	sse128_u32_t( uint32_t v ) {
-		if constexpr ( SSEx == 41 ) {
+		if constexpr ( SSE == 41 ) {
 			m_vec = _mm_cvtepu8_epi32( _mm_cvtsi32_si128( v ) ); // _mm_cvtepu8_epi32 - SSE4.1
 		} else { // SSE2
 			__m128i zero = _mm_setzero_si128();
@@ -64,7 +64,7 @@ public:
 	operator __m128i () const { return m_vec; }
 
 	operator uint32_t () const {
-		if constexpr ( SSEx == 41 ) {
+		if constexpr ( SSE == 41 ) {
 
 // Prefer SSSE3 over SSE41 here
 #if defined( __SSSE3__ )
@@ -93,7 +93,7 @@ public:
 	}
 
 	sse128_u32_t operator * ( int value ) const {
-		if constexpr ( SSEx == 41 ) {
+		if constexpr ( SSE == 41 ) {
 			return _mm_mullo_epi32( m_vec, _mm_set1_epi32( value ) ); // SSE4.1
 		} else { // SSE2
 			__m128i v = _mm_set1_epi32( value );
@@ -111,7 +111,6 @@ public:
 		return _mm_srli_epi32( m_vec, shift );	// SSE2
 	}
 
-
 	sse128_u32_t operator / ( const divisor & d ) const {
 		__m128i t1 = _mm_mul_epu32( m_vec, d.multiplier() );// 32x32->64 bit unsigned multiplication of a[0] and a[2]
 		__m128i t2 = _mm_srli_epi64( t1, 32 );				// high dword of result 0 and 2
@@ -119,7 +118,7 @@ public:
 		__m128i t4 = _mm_mul_epu32( t3, d.multiplier() );	// 32x32->64 bit unsigned multiplication of a[1] and a[3]
 
 		__m128i t7;
-		if constexpr ( SSEx == 41 ) {
+		if constexpr ( SSE == 41 ) {
 			t7 = _mm_blend_epi16( t2, t4, 0xcc );			// blend two results (SSE4.1)
 		} else { // SSE2
 			__m128i t5 = _mm_set_epi32( -1, 0, -1, 0 );		// mask of dword 1 and 3
@@ -133,6 +132,5 @@ public:
 		return _mm_srl_epi32( t10, d.shift2() );			// shift right logical
 	}
 }; // class sse128_u32_t
-
 
 } // namespace san::stack_blur::simd::calculator

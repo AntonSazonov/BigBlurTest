@@ -63,43 +63,6 @@ class app final : public sdl::window_rgba {
 	san_stack_blur_fastest_t			m_san_sb_fastest;
 	san_stack_blur_fastest_2_t			m_san_sb_fastest_2;
 
-#if 0
-	using san_stack_blur_fastest_t		= san::stack_blur::simd::fastest::blur_impl;
-	san_stack_blur_fastest_t			m_san_sb_fastest;
-
-	using san_stack_blur_fastest_2_t	= san::stack_blur::simd::fastest_2::blur_impl;
-	san_stack_blur_fastest_2_t			m_san_sb_fastest_2;
-
-	//san::test::blur_impl			m_san_sb_test;
-
-	std::forward_list <std::pair<std::string, std::function <void(int)>>> m_algorithms{
-		{ "agg::recursive_blur::blur"                , std::bind( &agg_recursive_blur_t   ::blur<san::agg_image_adaptor>, m_agg_recursive_blur               , std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) },
-		{ "agg::stack_blur::blur"                    , std::bind( &agg_stack_blur_t       ::blur<san::agg_image_adaptor>, m_agg_stack_blur                   , std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) },
-		{ "agg::stack_blur_rgba32"                   , std::bind( agg::stack_blur_rgba32        <san::agg_image_adaptor>                                     , std::ref( m_backbuffer_agg  ), std::placeholders::_1, std::placeholders::_1 ) },
-
-		{ "san::stack_blur::naive"                   , std::bind( san::stack_blur::naive        <san::stack_blur::naive_calc>                                , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
-		{ "san::stack_blur::naive (MT)"              , std::bind( san::stack_blur::naive        <san::stack_blur::naive_calc,              san::parallel_for>, std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
-
-#ifdef __SSE2__
-		{ "san::stack_blur::simd::blur (SSE2)"       , std::bind( san::stack_blur::simd::blur   <san::stack_blur::simd::calculator::sse2>                    , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
-		{ "san::stack_blur::simd::blur (SSE2, MT)"   , std::bind( san::stack_blur::simd::blur   <san::stack_blur::simd::calculator::sse2,  san::parallel_for>, std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
-#endif // __SSE2__
-
-#ifdef __SSE4_1__
-		{ "san::stack_blur::simd::blur (SSE4.1)"     , std::bind( san::stack_blur::simd::blur   <san::stack_blur::simd::calculator::sse41>                   , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
-		{ "san::stack_blur::simd::blur (SSE4.1 MT)"  , std::bind( san::stack_blur::simd::blur   <san::stack_blur::simd::calculator::sse41, san::parallel_for>, std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
-#endif // __SSE4_1__
-
-#ifdef __SSE2__
-		{ "san::stack_blur::simd::fastest::blur_impl"        , std::bind( &san_stack_blur_fastest_t  ::blur <san::image_view>                   , m_san_sb_fastest  , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
-		{ "san::stack_blur::simd::fastest::blur_impl (MT)"   , std::bind( &san_stack_blur_fastest_t  ::blur <san::image_view, san::parallel_for>, m_san_sb_fastest  , std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
-		{ "san::stack_blur::simd::fastest::blur_impl (MT) 2" , std::bind( &san_stack_blur_fastest_2_t::blur <san::image_view, san::parallel_for>, m_san_sb_fastest_2, std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
-
-		//{ "san::test::blur_impl (MT)"                      , std::bind( &san::test::blur_impl::blur     <san::image_view, san::parallel_for>, m_san_sb_test    , std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
-#endif // __SSE2__
-	};
-#endif
-
 public:
 	app( int width, int height )
 		: sdl::window_rgba( width, height, "Blur Test" )
@@ -249,6 +212,8 @@ public:
 		m_bench_radius		= 0;
 		m_bench_interations	= 1;
 
+		SDL_EventState( SDL_KEYDOWN        , SDL_DISABLE );
+		SDL_EventState( SDL_KEYUP          , SDL_DISABLE );
 		SDL_EventState( SDL_MOUSEMOTION    , SDL_DISABLE );
 		SDL_EventState( SDL_MOUSEBUTTONDOWN, SDL_DISABLE );
 		SDL_EventState( SDL_MOUSEBUTTONUP  , SDL_DISABLE );
@@ -317,6 +282,8 @@ public:
 				//m_mouse_x = m_bench_radius;
 				set_wait_mode( true );
 				m_is_benchmarking = false;
+				SDL_EventState( SDL_KEYDOWN        , SDL_ENABLE );
+				SDL_EventState( SDL_KEYUP          , SDL_ENABLE );
 				SDL_EventState( SDL_MOUSEMOTION    , SDL_ENABLE );
 				SDL_EventState( SDL_MOUSEBUTTONDOWN, SDL_ENABLE );
 				SDL_EventState( SDL_MOUSEBUTTONUP  , SDL_ENABLE );
@@ -324,14 +291,10 @@ public:
 				double sec = ms / 1e3;
 				double fps = m_bench_interations / sec;
 
-				char buffer[256];
-				std::sprintf( buffer, "%s --- done. %4d iterations in %5.2f sec., %6.2f FPS, ~%.1f ms/frame, %u MPixels/s.\n",
+				std::printf( "%s --- done. %4d iterations in %5.2f sec., %6.2f FPS, ~%.1f ms/frame, %u MPixels/s.\n",
 					m_bench_name.c_str(), m_bench_interations, sec, fps, ms / m_bench_interations, uint32_t(width() * height() * fps / 1e6) );
 
-				set_title( buffer );
-				std::puts( buffer );
-
-				// To update display...
+				// To update window...
 				SDL_Event ev = {};
 				ev.type = SDL_DISPLAYEVENT;
 				SDL_PushEvent( &ev );

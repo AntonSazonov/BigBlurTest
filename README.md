@@ -1,5 +1,6 @@
 # Blur Algorithms and Implementations Test in C++
 ![CMake workflow](https://github.com/AntonSazonov/Blur_Test/actions/workflows/cmake.yml/badge.svg)
+[![GitHub code size](https://img.shields.io/github/languages/code-size/AntonSazonov/Blur_Test?style=flat)](https://github.com/AntonSazonov/Blur_Test)
 
 Tested algorithms and implementations:
  * Stack Blur (from Anti-Grain Geometry 2.5 by Maxim Shemanarev).

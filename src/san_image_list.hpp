@@ -2,7 +2,7 @@
 
 #include <list>
 #include <filesystem>
-#include "stb_image_loader.hpp"
+#include "stb_impl.hpp"
 
 namespace san {
 

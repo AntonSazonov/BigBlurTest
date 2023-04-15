@@ -136,17 +136,18 @@ public:
 
 		const int th = 24;
 		int h = m_backbuffer_view.height() - 5;
-		m_ui.add_control( new san::ui::link    ( { 10, double(h-=th) }, "https://github.com/AntonSazonov/Blur_Test" ) );
-		m_ui.add_control( new san::ui::textbox ( { 10, double(h-=th) }, "Compile options: " + std::string( g_compile_options ) ) );
-		m_ui.add_control( new san::ui::textbox ( { 10, double(h-=th) }, "       Compiler: " + std::string( g_compiler ) ) );
-		m_ui.add_control( new san::ui::textbox ( { 10, double(h-=th) }, "     Build type: " + std::string( g_build_type ) ) );
-		m_ui.add_control( new san::ui::textbox ( { 10, double(h-=th) }, "        Threads: " + std::to_string( m_parallel_for.num_threads() ) ) );
-		m_ui.add_control( new san::ui::textbox ( { 10, double(h-=th) }, "Use arrays <- and -> to change image." ) );
+
+		m_ui.add<san::ui::link>   ( BLPoint{ 10, double(h-=th) }, "https://github.com/AntonSazonov/Blur_Test" );
+		m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "Compile options: " + std::string( g_compile_options ) );
+		m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "       Compiler: " + std::string( g_compiler ) );
+		m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "     Build type: " + std::string( g_build_type ) );
+		m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "        Threads: " + std::to_string( m_parallel_for.num_threads() ) );
+		m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "Use arrays <- and -> to change image." );
 
 		// Add UI algorithms buttons...
 		int y = 10;
 		for ( const auto & p : m_impls ) {
-			m_ui.add_control( new san::ui::button( { 10, double(y) }, p.first, [&]{ std::printf( "Benchmark start...\n" ); start_benchmark( p ); } ) );
+			m_ui.add<san::ui::button>( BLPoint{ 10, double(y) }, p.first, [&]{ std::printf( "Benchmark start...\n" ); start_benchmark( p ); } );
 			y += 40;
 		}
 

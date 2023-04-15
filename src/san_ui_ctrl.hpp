@@ -34,6 +34,8 @@ public:
 		m_rect.y -= .5;
 	}
 
+	virtual ~control() {}
+
 	virtual void on_event( uint64_t /*timestamp*/, SDL_Event * ) = 0;
 	virtual void draw( ui & ) /*const*/ = 0;
 

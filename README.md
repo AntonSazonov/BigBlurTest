@@ -20,7 +20,8 @@ The fastest implementation I could write is about 1.6ms for a 1280x720 32bpp fra
 Note, that part of time is spended to SDL's event handling, blitting etc. So actual speed of some implementations (especially multithreaded) is significantly higher.  
 
 TODO:
- * Recursive Blur SIMD version 
+ * Recursive Blur SIMD version
+ * Gaussian Blur
 
 Example on Youtube (need to be updated):
 [![Watch the video](https://github.com/AntonSazonov/Blur_Test/blob/main/screenshot.png)](https://youtu.be/xsU6lKb5LRA)

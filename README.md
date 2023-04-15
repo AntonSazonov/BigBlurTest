@@ -14,7 +14,7 @@ The Stack Blur algorithm was invented by Mario Klingemann.
 mario@quasimondo.com  
 https://medium.com/@quasimondo  
 
-AGG - Anti-Grain Geometry - library by Maxim Shemanarev.
+AGG - Anti-Grain Geometry - a library that was written by Maxim Shemanarev.
 
 Do not use SIMD versions with disabled compiler optimizations. They'll be too slow.  
 Use at least '-O1' optimization level.  

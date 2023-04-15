@@ -159,7 +159,7 @@ public:
 	int m_mouse_x = -1;
 	int m_mouse_y = -1;
 
-	bool on_event( uint64_t timestamp, SDL_Event * p_event ) override {
+	bool on_event( uint64_t timestamp, const SDL_Event * const p_event ) override {
 
 		// Forward events to UI...
 		m_ui.on_event( timestamp, p_event );

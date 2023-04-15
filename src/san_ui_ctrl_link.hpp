@@ -22,12 +22,12 @@ public:
 		: control( { pos.x, pos.y, 0, 0 } )
 		, m_url( url ) {}
 
-	void on_event( uint64_t timestamp, SDL_Event * p_event ) override {
+	void on_event( uint64_t timestamp, const SDL_Event * const p_event ) override {
 		switch ( p_event->type ) {
 
 			case SDL_MOUSEBUTTONDOWN: [[fallthrough]];
 			case SDL_MOUSEBUTTONUP: {
-				SDL_MouseButtonEvent * p = &p_event->button;
+				const SDL_MouseButtonEvent * const p = &p_event->button;
 
 				bool is_inside = is_point_inside( { double(p->x), double(p->y) } );
 				bool is_down   = p_event->type == SDL_MOUSEBUTTONDOWN;
@@ -51,7 +51,7 @@ public:
 			} break;
 
 			case SDL_MOUSEMOTION: {
-				SDL_MouseMotionEvent * p = &p_event->motion;
+				const SDL_MouseMotionEvent * const p = &p_event->motion;
 				m_is_hovered = is_point_inside( { double(p->x), double(p->y) } );
 			} break;
 		}

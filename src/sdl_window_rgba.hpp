@@ -101,7 +101,7 @@ public:
 		return true;
 	}
 
-	virtual bool on_event( uint64_t, SDL_Event * ) = 0;//{ return true; } // true - continue loop, false - break
+	virtual bool on_event( uint64_t, const SDL_Event * const ) = 0;//{ return true; } // true - continue loop, false - break
 	virtual void on_frame() = 0;
 
 

@@ -21,7 +21,7 @@ public:
 		: control( { pos.x, pos.y, 0, 0 } )
 		, m_text( text ) {}
 
-	void on_event( uint64_t timestamp, SDL_Event * p_event ) override {}
+	void on_event( uint64_t timestamp, const SDL_Event * const p_event ) override {}
 
 	void draw( ui & ctx ) /*const*/ override {
 

@@ -36,8 +36,8 @@ public:
 
 	virtual ~control() {}
 
-	virtual void on_event( uint64_t /*timestamp*/, SDL_Event * ) = 0;
-	virtual void draw( ui & ) /*const*/ = 0;
+	virtual void on_event( uint64_t/*timestamp*/, const SDL_Event * const ) = 0;
+	virtual void draw( ui & ) = 0;
 
 	void move_rel( const BLPoint & rel ) {
 		m_rect.x += rel.x;

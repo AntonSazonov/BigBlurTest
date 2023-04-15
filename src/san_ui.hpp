@@ -61,7 +61,7 @@ public:
 		return p_ctl;
 	}
 
-	void on_event( uint64_t timestamp, SDL_Event * p_event ) {
+	void on_event( uint64_t timestamp, const SDL_Event * const p_event ) {
 
 		// Process controls in reverse order...
 		for ( auto it = m_controls.rbegin(), end = m_controls.rend(); it != end; ++it ) {

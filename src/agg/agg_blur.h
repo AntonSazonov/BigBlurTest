@@ -278,8 +278,10 @@ namespace agg
 
     //=======================================================stack_blur_rgba32
 	template <typename Img, typename ParallelFor>
-	void stack_blur_rgba32( Img & img, ParallelFor & parallel_for, unsigned radius, int override_num_threads )
+	void stack_blur_rgba32( Img & img, ParallelFor & parallel_for, int radius, int override_num_threads )
     {
+        if ( radius <= 0 ) return;
+
         typedef typename Img::color_type color_type;
         typedef typename Img::order_type order_type;
         enum order_e 
@@ -295,18 +297,15 @@ namespace agg
         unsigned wm  = w - 1;
         unsigned hm  = h - 1;
 
-        unsigned div;
-        unsigned mul_sum;
-        unsigned shr_sum;
+        if ( radius > 254 ) radius = 254;
 
-        mul_sum = stack_blur_tables<int>::g_stack_blur8_mul[radius];
-        shr_sum = stack_blur_tables<int>::g_stack_blur8_shr[radius];
+        int stride = img.stride();
+        unsigned div = radius * 2 + 1;
 
-        if(radius > 0)
+        unsigned mul_sum = stack_blur_tables<int>::g_stack_blur8_mul[radius];
+        unsigned shr_sum = stack_blur_tables<int>::g_stack_blur8_shr[radius];
+
         {
-            if(radius > 254) radius = 254;
-            div = radius * 2 + 1;
-
 			// parallelize...
 			parallel_for.run_and_wait( 0, h, [&]( int pf_begin, int pf_end ) {
 
@@ -449,15 +448,7 @@ namespace agg
 			}, override_num_threads );
         }
 
-        if(radius > 0)
         {
-            if(radius > 254) radius = 254;
-            div = radius * 2 + 1;
-            mul_sum = stack_blur_tables<int>::g_stack_blur8_mul[radius];
-            shr_sum = stack_blur_tables<int>::g_stack_blur8_shr[radius];
-
-            int stride = img.stride();
-
 			// parallelize...
 			parallel_for.run_and_wait( 0, w, [&]( int pf_begin, int pf_end ) {
 

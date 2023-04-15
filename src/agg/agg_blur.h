@@ -113,8 +113,6 @@ namespace agg
         typedef CalculatorT calculator_type;
 
         //--------------------------------------------------------------------
-        //template<class Img> void blur_x(Img& img, unsigned radius)
-
 		template <typename Img, typename ParallelFor>
 		void blur_x( Img & img, ParallelFor & parallel_for, unsigned radius, int override_num_threads )
         {
@@ -211,16 +209,6 @@ namespace agg
 
 			}, override_num_threads );
         }
-
-#if 0
-        //--------------------------------------------------------------------
-		template <typename Img, typename ParallelFor>
-		void blur_y( Img & img, ParallelFor & parallel_for, unsigned radius, int override_num_threads )
-        {
-            pixfmt_transposer<Img> img2(img);
-            blur_x(img2, parallel_for, radius, override_num_threads );
-        }
-#endif
 
         //--------------------------------------------------------------------
 		template <typename Img, typename ParallelFor>
@@ -706,15 +694,6 @@ namespace agg
 
 			}, override_num_threads );
         }
-
-#if 0
-        //--------------------------------------------------------------------
-		template <typename Img, typename ParallelFor>
-		void blur_y( Img & img, ParallelFor & parallel_for, double radius, int override_num_threads ) {
-            pixfmt_transposer <Img> img2( img );
-            blur_x( img2, parallel_for, radius, override_num_threads );
-        }
-#endif
 
         //--------------------------------------------------------------------
 		template <typename Img, typename ParallelFor>

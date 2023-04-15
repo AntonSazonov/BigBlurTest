@@ -83,8 +83,10 @@ message( STATUS " -------------------------------------------" )
 
 if( MSVC )
 	target_compile_options( main PRIVATE /W4 )
+	target_link_options   ( main PRIVATE /subsystem:console )
 else()
 	target_compile_options( main PRIVATE -march=native -Wall -fno-exceptions -fno-rtti ) # -msse2 -Wextra -Wpedantic
+	target_link_options   ( main PRIVATE -mconsole -s ) # -static
 endif()
 
 
@@ -106,7 +108,6 @@ add_custom_command(
 
 add_custom_target         ( opts DEPENDS ${COMPILE_OPTS_FILE} )
 add_dependencies          ( main opts )
-target_link_options       ( main PRIVATE -mconsole -s ) # -s -static
 target_include_directories( main PRIVATE ${CMAKE_SOURCE_DIR} )
 target_include_directories( main PRIVATE ${CMAKE_SOURCE_DIR}/src )
 target_link_libraries     ( main PRIVATE SDL2::SDL2 blend2d::blend2d )

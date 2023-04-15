@@ -12,12 +12,15 @@ The Stack Blur algorithm was invented by Mario Klingemann.
 mario@quasimondo.com  
 https://medium.com/@quasimondo  
 
-Do not use SIMD versions with disabled compiler optimizations. They'll be too slow. Use at least -O1 optimization level.  
-All tested versions use 32-bit pixel format.  
-Clang do much better optimizations with same flags than GCC. Both from MSYS2/MinGW64 toolchain.  
+Do not use SIMD versions with disabled compiler optimizations. They'll be too slow.  
+Use at least -O1 optimization level.  
+
+All tested versions use 32-bit pixel format.
+
+Clang do much better optimizations with same flags than GCC. Both tested are from MSYS2/MinGW64 toolchain.  
 
 The fastest implementation I could write is about 1.6ms for a 1280x720 32bpp frame on an AMD Ryzen 7 2700 with 16 threads.  
-Note, that part of time is spended to SDL's event handling, blitting etc. So actual speed of some implementations (especially multithreaded) is significantly higher.  
+Note, that part of time is spended to SDL's event handling, blitting etc. So actual speed of some implementations (especially multithreaded) is significantly higher. And, thats why your CPU load shows you 50-60% load with using all cores - SDL runs in one thread.
 
 TODO:
  * Recursive Blur SIMD version

@@ -21,7 +21,7 @@ class ui : public BLContext {
 	BLFont					m_font_sans;
 	BLFont					m_font_mono;
 
-	console					m_console;
+	//console					m_console;
 	std::list <control *>	m_controls;
 
 	bool load_font( BLFontFace & face, const char * name ) {
@@ -47,11 +47,18 @@ public:
 		m_font_mono.createFromFace( m_face_mono, m_font_size );
 	}
 
-	const class console & console() const { return m_console; }
-	      class console & console()       { return m_console; }
+	virtual ~ui() {
+		for ( control * p_ctl : m_controls ) delete p_ctl;
+	}
 
-	void add_control( control * ctrl ) {
-		m_controls.push_back( ctrl );
+//	const class console & console() const { return m_console; }
+//	      class console & console()       { return m_console; }
+
+	template <typename CtlT, typename ... Args>
+	control * add( Args && ... args ) {
+		control * p_ctl = new (std::nothrow) CtlT( std::forward<Args>(args)... );
+		if ( p_ctl ) m_controls.push_back( p_ctl );
+		return p_ctl;
 	}
 
 	void on_event( uint64_t timestamp, SDL_Event * p_event ) {
@@ -182,7 +189,7 @@ freely, subject to the following restrictions:
 	void draw() {
 		BLContext::begin( m_image );
 
-		for ( control * c : m_controls ) {
+		for ( control * p_ctl : m_controls ) {
 
 			//BLBox bbox = c->get_bbox();
 			//BLRect rect = c->get_rect();
@@ -190,8 +197,8 @@ freely, subject to the following restrictions:
 			//sdl::surface_view surface_view( m_surface, int(rect.x), int(rect.y), int(rect.w), int(rect.h) );
 			//m_san_stack_blur_simd.blur( surface_view, 8, 8, m_parallel_for );
 
-			if ( c->is_visible() ) {
-				c->draw( *this );
+			if ( p_ctl->is_visible() ) {
+				p_ctl->draw( *this );
 			}
 		}
 

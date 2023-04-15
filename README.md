@@ -24,3 +24,4 @@ TODO:
 
 Example on Youtube (need to be updated):
 [![Watch the video](https://github.com/AntonSazonov/Blur_Test/blob/main/screenshot.png)](https://youtu.be/xsU6lKb5LRA)
+

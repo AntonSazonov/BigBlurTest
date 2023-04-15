@@ -51,8 +51,9 @@ class app final : public sdl::window_rgba {
 
 	san::image_list					m_image_list;		// Loaded image list in its' original sizes
 
-	using impl_func_type = std::function <void(int, int)>;	// Function params.: 'radius', '# of threads' or 0 - max threads from 'parallel_for'.
-	san::impl_list <impl_func_type>	m_impls;	// Implementation list.
+	// Implementation list
+	// Function params.: 'radius', '# of threads' or 0 - max threads from 'parallel_for'
+	san::impl_list <std::function <void(int, int)>>	m_impls;
 
 	using agg_stack_blur_t				= agg::stack_blur		<agg::rgba8, agg::stack_blur_calc_rgba<uint32_t>>;
 	using agg_recursive_blur_t			= agg::recursive_blur	<agg::rgba8, agg::recursive_blur_calc_rgba<double>>;
@@ -118,25 +119,28 @@ public:
 #endif // __SSE4_1__
 
 
-#ifdef __SSE4_1__
-		using fast_calc = san::stack_blur::simd::calculator::sse128_u32_t<41>;
-#else
-		using fast_calc = san::stack_blur::simd::calculator::sse128_u32_t<2>;
-#endif
-		using san_stack_blur_fastest_t		= san::stack_blur::simd::fastest::blur_impl<fast_calc>;
-		using san_stack_blur_fastest_2_t	= san::stack_blur::simd::fastest_2::blur_impl<fast_calc>;
 
-		san_stack_blur_fastest_t			m_san_sb_fastest;
-		san_stack_blur_fastest_2_t			m_san_sb_fastest_2;
+		namespace sss = san::stack_blur::simd;
+
+#ifdef __SSE4_1__
+		using fast_calc = sss::calculator::sse128_u32_t<41>;
+#else
+		using fast_calc = sss::calculator::sse128_u32_t<2>;
+#endif
+		using sss_fastest_t		= sss::fastest::blur_impl<fast_calc>;
+		using sss_fastest_2_t	= sss::fastest_2::blur_impl<fast_calc>;
+
+		sss_fastest_t			m_san_sb_fastest;
+		sss_fastest_2_t			m_san_sb_fastest_2;
 
 		m_impls.emplace(
 			"san::stack_blur::simd::fastest::blur_impl",
-			std::bind( &san_stack_blur_fastest_t::blur<san::image_view, san::parallel_for>, m_san_sb_fastest,
+			std::bind( &sss_fastest_t::blur<san::image_view, san::parallel_for>, m_san_sb_fastest,
 			std::ref( m_backbuffer_view ), std::ref( m_parallel_for ), std::placeholders::_1, std::placeholders::_2 ) );
 
 		m_impls.emplace(
 			"san::stack_blur::simd::fastest::blur_impl_2",
-			std::bind( &san_stack_blur_fastest_2_t::blur<san::image_view, san::parallel_for>, m_san_sb_fastest_2,
+			std::bind( &sss_fastest_2_t::blur<san::image_view, san::parallel_for>, m_san_sb_fastest_2,
 			std::ref( m_backbuffer_view ), std::ref( m_parallel_for ), std::placeholders::_1, std::placeholders::_2 ) );
 
 
@@ -240,8 +244,9 @@ public:
 		if ( !m_is_benchmarking ) {
 			//san::stack_blur::naive<san::stack_blur::naive_calc>( m_backbuffer_view, m_mouse_x );
 
-			using sse_calc = san::stack_blur::simd::calculator::sse128_u32_t<2>;
-			san::stack_blur::simd::blur<sse_calc>( m_backbuffer_view, m_parallel_for, m_mouse_x, 1/*threads*/ );
+			namespace	sss			= san::stack_blur::simd;
+			using		sse_calc	= sss::calculator::sse128_u32_t<2>;
+			sss::blur<sse_calc>( m_backbuffer_view, m_parallel_for, m_mouse_x, 1/*threads*/ );
 
 			//agg::recursive_blur <agg::rgba8, agg::recursive_blur_calc_rgba<float>> rbf;
 			//agg::recursive_blur <agg::rgba8, san::recursive_blur_calc_rgba<double>> rbf;

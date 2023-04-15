@@ -70,25 +70,8 @@ void line_process( line_adaptor & line, int head, int tail/*exclusive*/, int rad
 	}
 }
 
-template <typename SIMDCalcT>
-void blur( san::image_view & image, int radius ) {
-	if ( radius <= 0 ) return;
-
-	// Horizontal pass...
-	for ( int y = 0; y < image.height(); y++ ) {
-		line_adaptor line( (uint32_t *)image.row_ptr( y ), image.width(), 1/*advance*/ );
-		line_process<SIMDCalcT>( line, 0, image.width(), radius );
-	}
-
-	// Vertical pass...
-	for ( int x = 0; x < image.width(); x++ ) {
-		line_adaptor line( (uint32_t *)image.col_ptr( x ), image.height(), image.stride() / 4/*sizeof uint32_t*/ );
-		line_process<SIMDCalcT>( line, 0, image.height(), radius );
-	}
-}
-
 template <typename SIMDCalcT, typename ParallelFor>
-void blur( san::image_view & image, int radius, ParallelFor & parallel_for, int override_num_threads = 0 ) {
+void blur( san::image_view & image, ParallelFor & parallel_for, int radius, int override_num_threads = 0 ) {
 	if ( radius <= 0 ) return;
 
 	// Horizontal pass...

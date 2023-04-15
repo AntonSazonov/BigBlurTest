@@ -13,12 +13,12 @@ set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 set( BLEND2D_STATIC TRUE )
-add_subdirectory( src/blend2d "${CMAKE_SOURCE_DIR}/_build_blend2d_${CMAKE_BUILD_TYPE}" )
+add_subdirectory( src/blend2d )
 
 
 find_package( SDL2 REQUIRED )
 
-set( COMPILE_OPTS_FILE ${CMAKE_CURRENT_SOURCE_DIR}/main_compile_opts.hpp )
+set( COMPILE_OPTS_FILE ${CMAKE_SOURCE_DIR}/main_compile_opts.hpp )
 
 add_executable( main
 	main.cpp
@@ -58,8 +58,6 @@ add_executable( main
 	src/san_stack_blur_simd_fastest.hpp
 	src/san_stack_blur_simd_fastest_2.hpp
 
-	#san_recursive_blur_calc_rgba.hpp
-
 	src/san_image_list.hpp
 
 	${COMPILE_OPTS_FILE} )
@@ -74,12 +72,6 @@ target_precompile_headers( main PUBLIC
 
 set( CMAKE_CXX_FLAGS_DEBUG "-O1 ${CMAKE_CXX_FLAGS_DEBUG}" )
 
-message( STATUS " -------------------------------------------" )
-message( STATUS "       CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}" )
-message( STATUS "  CMAKE_CXX_FLAGS_DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}" )
-message( STATUS "CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}" )
-message( STATUS " -------------------------------------------" )
-
 if( MSVC )
 	target_compile_options( main PRIVATE /W4 )
 	target_link_options   ( main PRIVATE /subsystem:console )
@@ -88,7 +80,6 @@ else()
 	target_link_options   ( main PRIVATE -mconsole -s ) # -static
 endif()
 
-
 get_target_property( COMPILE_OPTS main COMPILE_OPTIONS )
 
 if( CMAKE_BUILD_TYPE STREQUAL "Debug" )
@@ -96,6 +87,11 @@ if( CMAKE_BUILD_TYPE STREQUAL "Debug" )
 else()
 	set( COMPILE_OPTS "${CMAKE_CXX_FLAGS_RELEASE} ${COMPILE_OPTS}" )
 endif()
+
+message( STATUS " -------------------------------------------" )
+message( STATUS " Build  type: ${CMAKE_BUILD_TYPE}" )
+message( STATUS " Build flags: ${COMPILE_OPTS}" )
+message( STATUS " -------------------------------------------" )
 
 add_custom_command(
 	OUTPUT ${COMPILE_OPTS_FILE}
@@ -113,7 +109,7 @@ target_link_libraries     ( main PRIVATE SDL2::SDL2 blend2d::blend2d )
 set_target_properties     ( main PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR} )
 set_target_properties     ( main PROPERTIES OUTPUT_NAME "${CMAKE_PROJECT_NAME}-${CMAKE_CXX_COMPILER_ID}-${CMAKE_BUILD_TYPE}" )
 
-# Remove COMPILE_OPTS_FILE...
+# Remove COMPILE_OPTS_FILE ...
 add_custom_command( TARGET main PRE_BUILD
 	COMMAND ${CMAKE_COMMAND} -E remove ${COMPILE_OPTS_FILE}
 )

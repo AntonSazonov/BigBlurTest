@@ -4,7 +4,7 @@
 #include <chrono>
 
 #include "sdl_window_rgba.hpp"
-#include "sdl_image_loader.hpp"
+#include "src/stb_impl.hpp"
 
 #include "agg/agg_color_rgba.h"
 #include "agg/agg_blur.h"

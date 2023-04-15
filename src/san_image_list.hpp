@@ -2,6 +2,7 @@
 
 #include <list>
 #include <filesystem>
+#include "stb_image_loader.hpp"
 
 namespace san {
 
@@ -15,13 +16,10 @@ public:
 		// Load all JPEGs from diretory...
 		for ( auto & p : std::filesystem::recursive_directory_iterator( path ) ) {
 			if ( p.path().extension() == ".jpg" ) { // JPEGs only
-				std::printf( "Loading '%s'...", p.path().string().c_str() );
-				std::shared_ptr <SDL_Surface> image = sdl::load( p.path().string().c_str() );
+				std::printf( "Loading '%s'...\n", p.path().string().c_str() );
+				std::shared_ptr <SDL_Surface> image = stb::load( p.path().string().c_str() );
 				if ( image ) {
 					m_images.push_back( image );
-					std::printf( " ok. Size: %dx%d\n", image->w, image->h );
-				} else {
-					std::printf( " failed.\n" );
 				}
 			}
 		}

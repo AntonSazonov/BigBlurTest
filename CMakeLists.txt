@@ -17,7 +17,6 @@ add_subdirectory( src/blend2d "${CMAKE_SOURCE_DIR}/_build_blend2d_${CMAKE_BUILD_
 
 
 find_package( SDL2 REQUIRED )
-find_package( SDL2_image REQUIRED )
 
 set( COMPILE_OPTS_FILE ${CMAKE_CURRENT_SOURCE_DIR}/main_compile_opts.hpp )
 
@@ -25,7 +24,10 @@ add_executable( main
 	main.cpp
 
 	src/sdl_window_rgba.hpp
-	src/sdl_image_loader.hpp
+	src/stb/stb_image.h
+	src/stb/stb_image_resize.h
+	src/stb_impl.hpp
+	src/stb_impl.cpp
 	src/san_parallel_for.hpp
 
 	src/agg/agg_array.h
@@ -109,7 +111,7 @@ add_dependencies          ( main opts )
 target_link_options       ( main PRIVATE -mconsole -s ) # -s -static
 target_include_directories( main PRIVATE ${CMAKE_SOURCE_DIR} )
 target_include_directories( main PRIVATE ${CMAKE_SOURCE_DIR}/src )
-target_link_libraries     ( main PRIVATE SDL2::SDL2 SDL2_image::SDL2_image blend2d::blend2d )
+target_link_libraries     ( main PRIVATE SDL2::SDL2 blend2d::blend2d )
 set_target_properties     ( main PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR} )
 set_target_properties     ( main PROPERTIES OUTPUT_NAME "${CMAKE_PROJECT_NAME}-${CMAKE_CXX_COMPILER_ID}-${CMAKE_BUILD_TYPE}" )
 

@@ -104,7 +104,6 @@ public:
 	virtual bool on_event( uint64_t, const SDL_Event * const ) = 0;//{ return true; } // true - continue loop, false - break
 	virtual void on_frame() = 0;
 
-
 	std::shared_ptr <SDL_Surface> copy_surface() const {
 		SDL_Surface * p = SDL_CreateRGBSurfaceWithFormat( 0/*unused*/, m_surface->w, m_surface->h, SDL_BYTESPERPIXEL( m_surface->format->format ), m_surface->format->format );
 		if ( !p ) {

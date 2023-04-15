@@ -11,9 +11,8 @@ class image_view {
 
 public:
 
-#if defined(SDL_MAJOR_VERSION) && defined(SDL_IMAGE_MAJOR_VERSION)
-#if SDL_MAJOR_VERSION >= 2 && SDL_IMAGE_MAJOR_VERSION >= 2
-//#pragma message( "Using SDL2 image_view" )
+#ifdef SDL_MAJOR_VERSION
+ #if SDL_MAJOR_VERSION >= 2
 
 	image_view( SDL_Surface * p )
 		: m_data( reinterpret_cast<uint8_t *>(p->pixels) )
@@ -22,7 +21,9 @@ public:
 		, m_stride( p->pitch )
 		, m_bytes_per_pixel( SDL_BYTESPERPIXEL( p->format->format ) ) {}
 
-#endif
+ #endif
+#else
+ #error "No SDL2 found."
 #endif
 
 	explicit operator bool () const { return m_data != nullptr; }

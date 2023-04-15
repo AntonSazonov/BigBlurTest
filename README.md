@@ -25,6 +25,7 @@ Note, that part of time is spended to SDL's event handling, blitting etc. So act
 TODO:
  * Recursive Blur SIMD version
  * Gaussian Blur
+ * Get rid of SDL2?
 
 Example on Youtube (need to be updated):
 [![Watch the video](https://github.com/AntonSazonov/Blur_Test/blob/main/screenshot.png)](https://youtu.be/xsU6lKb5LRA)

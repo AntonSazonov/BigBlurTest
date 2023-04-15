@@ -181,7 +181,7 @@ class blur_impl {
 
 public:
 	template <typename ImageViewT, typename ParallelFor>
-	void blur( ImageViewT & image, ParallelFor & parallel_for, int radius, int override_num_threads = 0 ) {
+	void blur( ImageViewT & image, ParallelFor & parallel_for, int radius, int override_num_threads ) {
 		if ( radius <= 0 ) return;
 		if ( radius > 254 ) radius = 254;
 

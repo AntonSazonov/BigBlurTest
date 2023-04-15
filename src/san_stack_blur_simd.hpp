@@ -71,7 +71,7 @@ void line_process( line_adaptor & line, int head, int tail/*exclusive*/, int rad
 }
 
 template <typename SIMDCalcT, typename ParallelFor>
-void blur( san::image_view & image, ParallelFor & parallel_for, int radius, int override_num_threads = 0 ) {
+void blur( san::image_view & image, ParallelFor & parallel_for, int radius, int override_num_threads ) {
 	if ( radius <= 0 ) return;
 
 	// Horizontal pass...

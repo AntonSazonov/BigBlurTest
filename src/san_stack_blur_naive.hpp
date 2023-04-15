@@ -68,7 +68,7 @@ void naive_line_process( naive_line_adaptor & line, int head, int tail/*exclusiv
 }
 
 template <typename NaiveCalcT, typename ParallelFor>
-void naive( san::image_view & image, ParallelFor & parallel_for, int radius, int override_num_threads = 0 ) {
+void naive( san::image_view & image, ParallelFor & parallel_for, int radius, int override_num_threads ) {
 	if ( radius <= 0 ) return;
 
 	// Horizontal pass...

@@ -15,7 +15,7 @@ https://medium.com/@quasimondo
 Do not use SIMD versions with disabled compiler optimizations. They'll be too slow.  
 Use at least -O1 optimization level.  
 
-All tested versions use 32-bit pixel format.
+All tested versions use 32-bit (8 bits per component, order of components is not impotant) pixel format.
 
 Clang do much better optimizations with same flags than GCC. Both tested are from MSYS2/MinGW64 toolchain.  
 

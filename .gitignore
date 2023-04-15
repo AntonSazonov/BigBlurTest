@@ -1,13 +1,9 @@
-_build*
-_backup
-_*.txt
-_*.h
-_*.hpp
-_*.cpp
+_*
 build*
 test
 test*
 x
+y
 z
 *.pdf
 *.log

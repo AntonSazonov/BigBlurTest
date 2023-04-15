@@ -2,6 +2,9 @@
 #include <cstdint>
 #include <memory>
 #include <chrono>
+#include <filesystem>
+#include <forward_list>
+#include <functional>
 
 #include "sdl_window_rgba.hpp"
 #include "sdl_image_loader.hpp"
@@ -10,7 +13,6 @@
 #include "agg/agg_blur.h"
 
 #include "san_image_list.hpp"
-#include "san_impl_list.hpp"
 #include "san_parallel_for.hpp"
 #include "san_image_view.hpp"
 #include "san_agg_image_adaptor.hpp"
@@ -65,10 +67,6 @@ class app final : public sdl::window_rgba {
 
 	//san::test::blur_impl			m_san_sb_test;
 
-
-	san::impl_list <std::function <void(int, int)>>	m_impls;	// Implementation list. Function params.: 'radius', '# of threads' or 0 - max threads from 'parallel_for'.
-
-#if 0
 	std::forward_list <std::pair<std::string, std::function <void(int)>>> m_algorithms{
 		{ "agg::recursive_blur::blur"                , std::bind( &agg_recursive_blur_t   ::blur<san::agg_image_adaptor>, m_agg_recursive_blur               , std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) },
 		{ "agg::stack_blur::blur"                    , std::bind( &agg_stack_blur_t       ::blur<san::agg_image_adaptor>, m_agg_stack_blur                   , std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) },
@@ -95,7 +93,6 @@ class app final : public sdl::window_rgba {
 		//{ "san::test::blur_impl (MT)"                      , std::bind( &san::test::blur_impl::blur     <san::image_view, san::parallel_for>, m_san_sb_test    , std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
 #endif // __SSE2__
 	};
-#endif
 
 public:
 	app( int width, int height )
@@ -119,31 +116,6 @@ public:
 		blit_scaled( m_image_list.current_image().get(), m_backbuffer_copy.get() );
 
 
-		//m_impls.emplace( "agg::recursive_blur::blur", std::bind( &agg_recursive_blur_t::blur<san::agg_image_adaptor>, m_agg_recursive_blur, std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) );
-
-		m_impls.emplace( "san::stack_blur::naive", std::bind( san::stack_blur::naive<san::stack_blur::naive_calc, san::parallel_for>, std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), std::placeholders::_2 ) );
-
-
-#ifdef __SSE2__
-		{ "san::stack_blur::simd::blur (SSE2)"       , std::bind( san::stack_blur::simd::blur   <san::stack_blur::simd::calculator::sse2>                    , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
-		{ "san::stack_blur::simd::blur (SSE2, MT)"   , std::bind( san::stack_blur::simd::blur   <san::stack_blur::simd::calculator::sse2,  san::parallel_for>, std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
-#endif // __SSE2__
-
-#ifdef __SSE4_1__
-		{ "san::stack_blur::simd::blur (SSE4.1)"     , std::bind( san::stack_blur::simd::blur   <san::stack_blur::simd::calculator::sse41>                   , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
-		{ "san::stack_blur::simd::blur (SSE4.1 MT)"  , std::bind( san::stack_blur::simd::blur   <san::stack_blur::simd::calculator::sse41, san::parallel_for>, std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
-#endif // __SSE4_1__
-
-#ifdef __SSE2__
-		{ "san::stack_blur::simd::fastest::blur_impl"        , std::bind( &san_stack_blur_fastest_t  ::blur <san::image_view>                   , m_san_sb_fastest  , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
-		{ "san::stack_blur::simd::fastest::blur_impl (MT)"   , std::bind( &san_stack_blur_fastest_t  ::blur <san::image_view, san::parallel_for>, m_san_sb_fastest  , std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
-		{ "san::stack_blur::simd::fastest::blur_impl (MT) 2" , std::bind( &san_stack_blur_fastest_2_t::blur <san::image_view, san::parallel_for>, m_san_sb_fastest_2, std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
-
-		//{ "san::test::blur_impl (MT)"                      , std::bind( &san::test::blur_impl::blur     <san::image_view, san::parallel_for>, m_san_sb_test    , std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
-#endif // __SSE2__
-
-
-
 		const int th = 24;
 		int h = m_backbuffer_view.height() - 5;
 		m_ui.add_control( new san::ui::link    ( { 10, double(h-=th) }, "https://github.com/AntonSazonov/Blur_Test" ) );
@@ -155,7 +127,7 @@ public:
 
 		// Add UI algorithms buttons...
 		int y = 10;
-		for ( const auto & p : m_impls ) {
+		for ( const auto & p : m_algorithms ) {
 			m_ui.add_control( new san::ui::button( { 10, double(y) }, p.first, [&]{ std::printf( "Benchmark start...\n" ); start_benchmark( p ); } ) );
 			y += 40;
 		}
@@ -203,16 +175,16 @@ public:
 
 	using clock_type = std::chrono::high_resolution_clock;
 
-	clock_type::time_point			m_bench_start;
-	int								m_bench_time_ms		= 10'000;
-	int								m_bench_raises;
-	int								m_bench_radius;
-	int								m_bench_interations;
-	std::string						m_bench_name;
-	std::function <void(int, int)>	m_bench_func;
+	clock_type::time_point		m_bench_start;
+	int							m_bench_time_ms		= 10'000;
+	int							m_bench_raises;
+	int							m_bench_radius;
+	int							m_bench_interations;
+	std::string					m_bench_name;
+	std::function <void(int)>	m_bench_func;
 
 	template <typename PairT>
-	void start_benchmark( const PairT & pair ) {
+	void start_benchmark( PairT pair ) {
 
 		m_bench_name = pair.first;
 		m_bench_func = pair.second;
@@ -267,7 +239,7 @@ public:
 		if ( m_is_benchmarking ) {
 
 			// Blur window's surface
-			m_bench_func( m_bench_radius, 0 );
+			m_bench_func( m_bench_radius );
 
 			if ( m_bench_raises ) {
 				if ( m_bench_radius++ >= 254 ) {

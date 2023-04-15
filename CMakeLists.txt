@@ -49,13 +49,12 @@ add_executable( main
 
 	src/san_image_view.hpp
 
+	src/san_stack_blur_luts.hpp
 	src/san_stack_blur_naive.hpp
 	src/san_stack_blur_naive_calc.hpp
 
 	src/san_stack_blur_simd.hpp
-	src/san_stack_blur_simd_calc_common.hpp
-	src/san_stack_blur_simd_calc_sse2.hpp
-	src/san_stack_blur_simd_calc_sse41.hpp
+	src/san_stack_blur_simd_calc.hpp
 	src/san_stack_blur_simd_fastest.hpp
 	src/san_stack_blur_simd_fastest_2.hpp
 

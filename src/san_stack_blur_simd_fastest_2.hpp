@@ -212,23 +212,8 @@ class blur_impl {
 	}
 
 public:
-
-	template <typename ImageViewT>
-	void blur( ImageViewT & image, int radius ) {
-		if ( radius <= 0 ) return;
-		if ( radius > 254 ) radius = 254;
-
-		m_radius = radius;
-		m_div = radius * 2 + 1;
-		m_mul = internal::lut_mul[radius];
-		m_shr = internal::lut_shr[radius];
-
-		for ( int y = 0; y < image.height(); y++ ) line_process( (uint32_t *)image.row_ptr( y ), image.width(), 1 );
-		for ( int x = 0; x < image.width() ; x++ ) line_process( (uint32_t *)image.col_ptr( x ), image.height(), image.stride() / 4 );
-	}
-
 	template <typename ImageViewT, typename ParallelFor>
-	void blur( ImageViewT & image, int radius, ParallelFor & parallel_for ) {
+	void blur( ImageViewT & image, ParallelFor & parallel_for, int radius, int override_num_threads = 0 ) {
 		if ( radius <= 0 ) return;
 		if ( radius > 254 ) radius = 254;
 
@@ -241,13 +226,13 @@ public:
 			for ( int y = a; y < b; y++ ) {
 				line_process( (uint32_t *)image.row_ptr( y ), image.width(), 1 );
 			}
-		} );
+		}, override_num_threads );
 
 		parallel_for.run_and_wait( 0, image.width(), [&]( int a, int b ) {
 			for ( int x = a; x < b; x++ ) {
 				line_process( (uint32_t *)image.col_ptr( x ), image.height(), image.stride() / 4 );
 			}
-		} );
+		}, override_num_threads );
 	}
 }; // class blur_impl
 

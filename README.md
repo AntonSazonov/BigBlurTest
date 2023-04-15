@@ -15,7 +15,7 @@ mario@quasimondo.com
 https://medium.com/@quasimondo  
 
 Do not use SIMD versions with disabled compiler optimizations. They'll be too slow.  
-Use at least -O1 optimization level.  
+Use at least '-O1' optimization level.  
 
 All tested versions use 32-bit (8 bits per component, order of components is not impotant) pixel format.
 

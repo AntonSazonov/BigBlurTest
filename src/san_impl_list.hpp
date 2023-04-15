@@ -10,7 +10,7 @@ class impl_list {
 	std::forward_list <std::pair<std::string, FuncT>> m_impls;
 
 public:
-	using function_type	= FuncT;
+	//using function_type	= FuncT;
 
 	template <typename ... Args>
 	auto emplace( Args && ... args ) {

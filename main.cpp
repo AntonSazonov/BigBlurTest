@@ -50,13 +50,20 @@ class app final : public sdl::window_rgba {
 
 	san::image_list					m_image_list;		// Loaded image list in its' original sizes
 
-	// Algorithms and implementations...
-	using agg_stack_blur_t			= agg::stack_blur		<agg::rgba8, agg::stack_blur_calc_rgba<uint32_t>>;
-	using agg_recursive_blur_t		= agg::recursive_blur	<agg::rgba8, agg::recursive_blur_calc_rgba<double>>;
+	using impl_func_type = std::function <void(int, int)>;	// Function params.: 'radius', '# of threads' or 0 - max threads from 'parallel_for'.
+	san::impl_list <impl_func_type>	m_impls;	// Implementation list.
 
-	agg_stack_blur_t				m_agg_stack_blur;
-	agg_recursive_blur_t			m_agg_recursive_blur;
+	using agg_stack_blur_t				= agg::stack_blur		<agg::rgba8, agg::stack_blur_calc_rgba<uint32_t>>;
+	using agg_recursive_blur_t			= agg::recursive_blur	<agg::rgba8, agg::recursive_blur_calc_rgba<double>>;
+	using san_stack_blur_fastest_t		= san::stack_blur::simd::fastest::blur_impl;
+	using san_stack_blur_fastest_2_t	= san::stack_blur::simd::fastest_2::blur_impl;
 
+	agg_stack_blur_t					m_agg_stack_blur;
+	agg_recursive_blur_t				m_agg_recursive_blur;
+	san_stack_blur_fastest_t			m_san_sb_fastest;
+	san_stack_blur_fastest_2_t			m_san_sb_fastest_2;
+
+#if 0
 	using san_stack_blur_fastest_t		= san::stack_blur::simd::fastest::blur_impl;
 	san_stack_blur_fastest_t			m_san_sb_fastest;
 
@@ -65,10 +72,6 @@ class app final : public sdl::window_rgba {
 
 	//san::test::blur_impl			m_san_sb_test;
 
-
-	san::impl_list <std::function <void(int, int)>>	m_impls;	// Implementation list. Function params.: 'radius', '# of threads' or 0 - max threads from 'parallel_for'.
-
-#if 0
 	std::forward_list <std::pair<std::string, std::function <void(int)>>> m_algorithms{
 		{ "agg::recursive_blur::blur"                , std::bind( &agg_recursive_blur_t   ::blur<san::agg_image_adaptor>, m_agg_recursive_blur               , std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) },
 		{ "agg::stack_blur::blur"                    , std::bind( &agg_stack_blur_t       ::blur<san::agg_image_adaptor>, m_agg_stack_blur                   , std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) },
@@ -118,28 +121,52 @@ public:
 		// Blit current image...
 		blit_scaled( m_image_list.current_image().get(), m_backbuffer_copy.get() );
 
+		// AGG
+		m_impls.emplace(
+			"agg::stack_blur_rgba32",
+			std::bind( agg::stack_blur_rgba32<san::agg_image_adaptor, san::parallel_for>,
+			std::ref( m_backbuffer_agg  ), std::ref( m_parallel_for ), std::placeholders::_1, std::placeholders::_2 ) );
 
-		//m_impls.emplace( "agg::recursive_blur::blur", std::bind( &agg_recursive_blur_t::blur<san::agg_image_adaptor>, m_agg_recursive_blur, std::ref( m_backbuffer_agg  ), std::placeholders::_1 ) );
+		m_impls.emplace(
+			"agg::stack_blur::blur",
+			std::bind( &agg_stack_blur_t::blur<san::agg_image_adaptor, san::parallel_for>, m_agg_stack_blur,
+			std::ref( m_backbuffer_agg  ), std::ref( m_parallel_for ), std::placeholders::_1, std::placeholders::_2 ) );
 
-		m_impls.emplace( "san::stack_blur::naive", std::bind( san::stack_blur::naive<san::stack_blur::naive_calc, san::parallel_for>, std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), std::placeholders::_2 ) );
+		m_impls.emplace(
+			"agg::recursive_blur::blur",
+			std::bind( &agg_recursive_blur_t::blur<san::agg_image_adaptor, san::parallel_for>, m_agg_recursive_blur,
+			std::ref( m_backbuffer_agg  ), std::ref( m_parallel_for ), std::placeholders::_1, std::placeholders::_2 ) );
 
+		// My
+		m_impls.emplace(
+			"san::stack_blur::naive",
+			std::bind( san::stack_blur::naive<san::stack_blur::naive_calc, san::parallel_for>,
+			std::ref( m_backbuffer_view ), std::ref( m_parallel_for ), std::placeholders::_1, std::placeholders::_2 ) );
 
 #ifdef __SSE2__
-		{ "san::stack_blur::simd::blur (SSE2)"       , std::bind( san::stack_blur::simd::blur   <san::stack_blur::simd::calculator::sse2>                    , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
-		{ "san::stack_blur::simd::blur (SSE2, MT)"   , std::bind( san::stack_blur::simd::blur   <san::stack_blur::simd::calculator::sse2,  san::parallel_for>, std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
+		m_impls.emplace(
+			"san::stack_blur::simd::blur (SSE2)",
+			std::bind( san::stack_blur::simd::blur<san::stack_blur::simd::calculator::sse2, san::parallel_for>,
+			std::ref( m_backbuffer_view ), std::ref( m_parallel_for ), std::placeholders::_1, std::placeholders::_2 ) );
 #endif // __SSE2__
 
 #ifdef __SSE4_1__
-		{ "san::stack_blur::simd::blur (SSE4.1)"     , std::bind( san::stack_blur::simd::blur   <san::stack_blur::simd::calculator::sse41>                   , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
-		{ "san::stack_blur::simd::blur (SSE4.1 MT)"  , std::bind( san::stack_blur::simd::blur   <san::stack_blur::simd::calculator::sse41, san::parallel_for>, std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ), 0 ) },
+		m_impls.emplace(
+			"san::stack_blur::simd::blur (SSE4.1)",
+			std::bind( san::stack_blur::simd::blur<san::stack_blur::simd::calculator::sse41, san::parallel_for>,
+			std::ref( m_backbuffer_view ), std::ref( m_parallel_for ), std::placeholders::_1, std::placeholders::_2 ) );
 #endif // __SSE4_1__
 
 #ifdef __SSE2__
-		{ "san::stack_blur::simd::fastest::blur_impl"        , std::bind( &san_stack_blur_fastest_t  ::blur <san::image_view>                   , m_san_sb_fastest  , std::ref( m_backbuffer_view ), std::placeholders::_1 ) },
-		{ "san::stack_blur::simd::fastest::blur_impl (MT)"   , std::bind( &san_stack_blur_fastest_t  ::blur <san::image_view, san::parallel_for>, m_san_sb_fastest  , std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
-		{ "san::stack_blur::simd::fastest::blur_impl (MT) 2" , std::bind( &san_stack_blur_fastest_2_t::blur <san::image_view, san::parallel_for>, m_san_sb_fastest_2, std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
+		m_impls.emplace(
+			"san::stack_blur::simd::fastest::blur_impl",
+			std::bind( &san_stack_blur_fastest_t::blur<san::image_view, san::parallel_for>, m_san_sb_fastest,
+			std::ref( m_backbuffer_view ), std::ref( m_parallel_for ), std::placeholders::_1, std::placeholders::_2 ) );
 
-		//{ "san::test::blur_impl (MT)"                      , std::bind( &san::test::blur_impl::blur     <san::image_view, san::parallel_for>, m_san_sb_test    , std::ref( m_backbuffer_view ), std::placeholders::_1, std::ref( m_parallel_for ) ) },
+		m_impls.emplace(
+			"san::stack_blur::simd::fastest::blur_impl_2",
+			std::bind( &san_stack_blur_fastest_2_t::blur <san::image_view, san::parallel_for>, m_san_sb_fastest_2,
+			std::ref( m_backbuffer_view ), std::ref( m_parallel_for ), std::placeholders::_1, std::placeholders::_2 ) );
 #endif // __SSE2__
 
 

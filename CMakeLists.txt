@@ -25,7 +25,7 @@ add_executable( main
 
 	src/sdl_window_rgba.hpp
 	src/stb/stb_image.h
-	src/stb/stb_image_resize.h
+	#src/stb/stb_image_resize.h
 	src/stb_impl.hpp
 	src/stb_impl.cpp
 	src/san_parallel_for.hpp
@@ -72,8 +72,6 @@ target_precompile_headers( main PUBLIC
 	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_basics.h$<ANGLE-R>>"
 	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_config.h$<ANGLE-R>>"
 	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_pixfmt_transposer.h$<ANGLE-R>>" )
-#[[
-]]
 
 set( CMAKE_CXX_FLAGS_DEBUG "-O1 ${CMAKE_CXX_FLAGS_DEBUG}" )
 

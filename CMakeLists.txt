@@ -77,7 +77,7 @@ if( MSVC )
 	target_link_options   ( main PRIVATE /subsystem:console )
 else()
 	#target_compile_options( main PRIVATE -march=native -Ofast -ffast-math -funroll-loops -Wall -fno-exceptions -fno-rtti ) # -msse2 -Wextra -Wpedantic
-	target_compile_options( main PRIVATE -march=x86-64 -Wall -fno-exceptions -fno-rtti ) # -msse2 -Wextra -Wpedantic
+	target_compile_options( main PRIVATE -march=native -Wall -fno-exceptions -fno-rtti ) # -msse2 -Wextra -Wpedantic
 	target_link_options   ( main PRIVATE -mconsole -s ) # -static
 endif()
 

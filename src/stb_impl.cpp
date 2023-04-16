@@ -17,7 +17,20 @@ namespace stb {
 	SDL_Surface * p_surface = nullptr;
 
 	if ( p_image ) {
+
+		// I don't care of alignment unless i using load-from-memory SIMD instructions.
+#if 0
+		printf( "p_image = %p\n", p_image );
 		printf( "TODO: check pointer alignment of 'stbi_load'!\n" );
+
+		uintptr_t p = uintptr_t(p_image);
+		int alignment = 1;
+		while ( !(p & 1) ) {
+			alignment <<= 1;
+			p >>= 1;
+		}
+		printf( "p_image align.: %d\n", alignment );
+#endif
 
 		// No copy is made of the pixel data. Pixel data is not managed automatically; you must free the surface before you free the pixel data.
 		p_surface = SDL_CreateRGBSurfaceWithFormatFrom( p_image, src_w, src_h, 32, src_w * 4, SDL_PIXELFORMAT_RGBA32 ); // SDL_PIXELFORMAT_RGB888

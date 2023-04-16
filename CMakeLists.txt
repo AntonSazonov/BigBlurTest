@@ -40,7 +40,7 @@ add_executable( main
 	src/san_agg_image_adaptor.hpp
 
 	src/san_ui.hpp
-	src/san_ui_console.hpp
+	#src/san_ui_console.hpp
 	src/san_ui_ctrl.hpp
 	src/san_ui_ctrl_button.hpp
 	src/san_ui_ctrl_checkbox.hpp
@@ -76,7 +76,8 @@ if( MSVC )
 	target_compile_options( main PRIVATE /W4 )
 	target_link_options   ( main PRIVATE /subsystem:console )
 else()
-	target_compile_options( main PRIVATE -march=native -Wall -fno-exceptions -fno-rtti ) # -msse2 -Wextra -Wpedantic
+	#target_compile_options( main PRIVATE -march=native -Ofast -ffast-math -funroll-loops -Wall -fno-exceptions -fno-rtti ) # -msse2 -Wextra -Wpedantic
+	target_compile_options( main PRIVATE -march=x86-64 -Wall -fno-exceptions -fno-rtti ) # -msse2 -Wextra -Wpedantic
 	target_link_options   ( main PRIVATE -mconsole -s ) # -static
 endif()
 
@@ -89,6 +90,7 @@ else()
 endif()
 
 message( STATUS " -------------------------------------------" )
+message( STATUS " Compiler ID: ${CMAKE_CXX_COMPILER_ID}" )
 message( STATUS " Build  type: ${CMAKE_BUILD_TYPE}" )
 message( STATUS " Build flags: ${COMPILE_OPTS}" )
 message( STATUS " -------------------------------------------" )

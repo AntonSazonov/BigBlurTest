@@ -56,7 +56,7 @@ public:
 	}
 
 	// Time in milliseconds since SDL was initialized.
-	uint64_t time() const { return SDL_GetTicks64(); }
+	//uint64_t time() const { return SDL_GetTicks64(); }
 
 	// Accessors
 	const SDL_Surface * surface()		const { return m_surface; }
@@ -101,7 +101,7 @@ public:
 		return true;
 	}
 
-	virtual bool on_event( uint64_t, const SDL_Event * const ) = 0;//{ return true; } // true - continue loop, false - break
+	virtual bool on_event( const SDL_Event * const ) = 0;
 	virtual void on_frame() = 0;
 
 	std::shared_ptr <SDL_Surface> copy_surface() const {
@@ -131,7 +131,7 @@ public:
 
 			// Pass 64-bit timestamp with each event.
 			// Event itself contain only 32-bit timestamp.
-			if ( !on_event( time(), &event ) ) break;
+			if ( !on_event( &event ) ) break;
 			if ( event.type == SDL_QUIT ) break;
 
 			on_frame();

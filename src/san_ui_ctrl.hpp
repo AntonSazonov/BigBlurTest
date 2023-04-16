@@ -6,58 +6,46 @@
 
 namespace san::ui {
 
-class ui;
+enum class mouse_button_e : uint8_t {
+	left	= SDL_BUTTON_LEFT,
+	middle	= SDL_BUTTON_MIDDLE,
+	right	= SDL_BUTTON_RIGHT,
+	x1		= SDL_BUTTON_X1,
+	x2		= SDL_BUTTON_X2
+}; // enum class mouse_button_e
 
-#if 0
-enum class alignment : uint8_t {
-	left	= 0,
-	right,
-	top,
-	bottom,
-	center
-}; // enum class alignment
-#endif
+
+class ui;
 
 class control {
 	control( const control & ) = delete;
 	control & operator = ( const control & ) = delete;
 
 protected:
-	bool		m_visible	= true;
-	//alignment	m_align_h	= alignment::left;
-	//alignment	m_align_v	= alignment::top;
+	ui *		m_ctx;
 	BLRect		m_rect;
+	bool		m_visible	= true;
 
 public:
-	control( const BLRect & rect ) : m_rect( rect ) {
+	control( ui * p_ctx, const BLRect & rect )
+		: m_ctx( p_ctx )
+		, m_rect( rect )
+	{
 		m_rect.x -= .5;
 		m_rect.y -= .5;
 	}
 
 	virtual ~control() {}
 
-	virtual void on_event( uint64_t/*timestamp*/, const SDL_Event * const ) = 0;
-	virtual void draw( ui & ) = 0;
+	virtual void on_mouse_button( const BLPoint &, mouse_button_e, bool/*pressed?*/ ) {}
+	virtual void on_mouse_motion( const BLPoint & ) {}
+	virtual void on_mouse_enter( const BLPoint & ) {}
+	virtual void on_mouse_leave( const BLPoint & ) {}
+	virtual void draw() = 0;
 
-	void move_rel( const BLPoint & rel ) {
-		m_rect.x += rel.x;
-		m_rect.y += rel.y;
-	}
+	BLBox bbox() const { return BLBox( m_rect.x, m_rect.y, m_rect.x + m_rect.w - 1, m_rect.y + m_rect.h - 1 ); }
 
-	BLRect get_rect() const { return m_rect; }
-
-	BLBox get_bbox() const {
-		return BLBox(
-			m_rect.x,
-			m_rect.y,
-			m_rect.x + m_rect.w - 1,
-			m_rect.y + m_rect.h - 1 );
-	}
-
-	bool is_point_inside( const BLPoint & pt ) const {
-		return get_bbox().contains( pt );
-	}
-
+	bool is_point_inside( const BLPoint & pt ) const { 	return bbox().contains( pt ); }
 	bool is_visible() const { return m_visible; }
 
 	void show() { m_visible =  true; }

@@ -17,43 +17,34 @@ class textbox : public control {
 	std::string	m_text;
 
 public:
-	textbox( const BLPoint & pos, const std::string & text )
-		: control( { pos.x, pos.y, 0, 0 } )
+	textbox( ui * p_ctx, const BLPoint & pos, const std::string & text )
+		: control( p_ctx, { pos.x, pos.y, 0, 0 } )
 		, m_text( text ) {}
 
-	void on_event( uint64_t timestamp, const SDL_Event * const p_event ) override {}
+	void draw() override {
 
-	void draw( ui & ctx ) /*const*/ override {
-
-		BLFont & font_mono = ctx.font_mono();
-
-		float prev_size = font_mono.size();
-		font_mono.setSize( prev_size * .36f );
-
-		BLSize text_size = ctx.get_string_size( font_mono, m_text.c_str() );
+		BLFont & mono = m_ctx->font_mono();
+		BLSize   size = m_ctx->string_size( mono, m_text.c_str(), .36f );
 
 		// Control rect.
-		double rect_expand = text_size.h * .7;
+		double rect_expand = size.h * .7;
 		BLRect rect(
 			m_rect.x,
 			m_rect.y,
-			text_size.w + rect_expand * 2,
-			text_size.h + rect_expand * 2 );
+			size.w + rect_expand * 2,
+			size.h + rect_expand * 2 );
 
 		// Update control's rect size according to text size...
 		m_rect = rect;
 
 		// Draw background
-		ctx.setFillStyle( BLRgba32( 0, 0, 0, 191 ) );
-		ctx.fillRoundRect( rect, rect_expand /*round radius*/ );
+		m_ctx->setFillStyle( BLRgba32( 0, 0, 0, 191 ) );
+		m_ctx->fillRoundRect( rect, rect_expand /*round radius*/ );
 
-		double x = rect.w / 2 - text_size.w / 2;
-		double y = rect.h / 2 - text_size.h / 2;
-		ctx.setFillStyle( BLRgba32( 191, 191, 191 ) );
-		ctx.fillUtf8Text( BLPoint( rect.x + x, rect.y + rect.h - y ), font_mono, m_text.c_str() );
-
-		// Restore font size
-		font_mono.setSize( prev_size );
+		double x = rect.w / 2 - size.w / 2;
+		double y = rect.h / 2 - size.h / 2;
+		m_ctx->setFillStyle( BLRgba32( 191, 191, 191 ) );
+		m_ctx->fill_string( BLPoint( rect.x + x, rect.y + rect.h - y ), mono, m_text.c_str(), .36f );
 	}
 }; // class textbox
 

@@ -1,14 +1,9 @@
 #pragma once
 
-//#define SDL_MAIN_HANDLED
-//#include <SDL.h>
-
 #include <list>
 #include <blend2d.h>
-#include "san_ui_console.hpp"
+//#include "san_ui_console.hpp"
 #include "san_ui_ctrl.hpp"
-//#include "san_parallel_for.hpp"
-//#include "san_stack_blur_simd.hpp"
 
 namespace san::ui {
 
@@ -16,33 +11,48 @@ class ui : public BLContext {
 	double					m_font_size;
 
 	BLImage 				m_image;
+
+	BLFontFace				m_face_fawf;	// FontAwesome-WebFont
 	BLFontFace				m_face_sans;
 	BLFontFace				m_face_mono;
+
+	BLFont					m_font_fawf;	// FontAwesome-WebFont
 	BLFont					m_font_sans;
 	BLFont					m_font_mono;
 
 	//console					m_console;
 	std::list <control *>	m_controls;
+	control *				m_hover			= nullptr;	// control under mouse pointer
+	control *				m_focus			= nullptr;	// active control
 
-	bool load_font( BLFontFace & face, const char * name ) {
-		if ( face.createFromFile( name ) ) {
-			std::fprintf( stderr, "Could not create font '%s'.\n", name );
+	bool load_font( BLFontFace & face, const std::string & name ) {
+		if ( face.createFromFile( name.c_str() ) ) {
+			std::fprintf( stderr, "Could not create font '%s'.\n", name.c_str() );
 			return false;
 		}
 		return true;
 	}
 
+	control * find_first_by_point( const BLPoint & xy ) {
+		// Process controls in reverse order...
+		for ( auto it = m_controls.rbegin(), end = m_controls.rend(); it != end; ++it ) {
+			control * p_ctl = *it;
+			if ( p_ctl->is_point_inside( xy ) ) {
+				return p_ctl;
+			}
+		}
+		return nullptr;
+	}
+
 public:
-
-	//ui( san::image_view & surface, double font_size = 32. ) : m_font_size( font_size ) {
-
-	//template <typename WindowType>
-	ui( san::image_view & image, double font_size = 32. ) : m_font_size( font_size ) {
+	ui( san::image_view & image, const std::string & path_fonts, double font_size = 32. ) : m_font_size( font_size ) {
 		m_image.createFromData( image.width(), image.height(), BL_FORMAT_XRGB32, image.ptr(), image.stride() );
 
-		load_font( m_face_sans, "./fonts/NotoSans-Regular.ttf" );
-		load_font( m_face_mono, "./fonts/SourceCodePro-Medium.otf" );
+		load_font( m_face_fawf, path_fonts + "/fontawesome-webfont.ttf" );
+		load_font( m_face_sans, path_fonts + "/NotoSans-Regular.ttf" );
+		load_font( m_face_mono, path_fonts + "/SourceCodePro-Medium.otf" );
 
+		m_font_fawf.createFromFace( m_face_fawf, m_font_size );
 		m_font_sans.createFromFace( m_face_sans, m_font_size );
 		m_font_mono.createFromFace( m_face_mono, m_font_size );
 	}
@@ -56,50 +66,93 @@ public:
 
 	template <typename CtlT, typename ... Args>
 	control * add( Args && ... args ) {
-		control * p_ctl = new (std::nothrow) CtlT( std::forward<Args>(args)... );
+		control * p_ctl = new (std::nothrow) CtlT( this, std::forward<Args>(args)... );
 		if ( p_ctl ) m_controls.push_back( p_ctl );
 		return p_ctl;
 	}
 
-	void on_event( uint64_t timestamp, const SDL_Event * const p_event ) {
+	void on_event( const SDL_Event * const p_event ) {
 
-		// Process controls in reverse order...
-		for ( auto it = m_controls.rbegin(), end = m_controls.rend(); it != end; ++it ) {
-			control * p_ctl = *it;
+		switch ( p_event->type ) {
 
-			// Don't send mouse events to all controls. Only to first.
-			if ( p_event->type == SDL_MOUSEMOTION ) {
-				if ( p_ctl->is_point_inside( { double(p_event->motion.x), double(p_event->motion.y) } ) ) {
-					p_ctl->on_event( timestamp, p_event );
-					break;
-				}
-			}
+			case SDL_MOUSEBUTTONDOWN: [[fallthrough]];
+			case SDL_MOUSEBUTTONUP: {
 
-			if ( p_event->type == SDL_MOUSEBUTTONDOWN ||
-				 p_event->type == SDL_MOUSEBUTTONUP )
-			{
-				if ( p_ctl->is_point_inside( { double(p_event->button.x), double(p_event->button.y) } ) ) {
+				// https://wiki.libsdl.org/SDL2/SDL_MouseButtonEvent
+				// button - SDL_BUTTON_LEFT, SDL_BUTTON_MIDDLE, SDL_BUTTON_RIGHT, SDL_BUTTON_X1, SDL_BUTTON_X2
+				//  state - SDL_PRESSED or SDL_RELEASED
+				//   x, y
+				const SDL_MouseButtonEvent * const p_mbe = &p_event->button;
+
+				BLPoint xy( p_mbe->x, p_mbe->y );
+				control * p_ctl = find_first_by_point( xy );
+				if ( p_ctl ) {
+					m_focus = p_ctl; // Set focus on control
 
 					// Move control to top (end of list)...
-					m_controls.erase( std::next( it ).base() );
-					m_controls.push_back( p_ctl );
+					//m_controls.erase( std::next( it ).base() );
+					//m_controls.push_back( p_ctl );
 
-					p_ctl->on_event( timestamp, p_event );
+					p_ctl->on_mouse_button( xy, mouse_button_e(p_mbe->button), p_mbe->state == SDL_PRESSED );
 					break;
 				}
-			}
+			} break;
 
-			p_ctl->on_event( timestamp, p_event );
+			case SDL_MOUSEMOTION: {
+
+				// https://wiki.libsdl.org/SDL2/SDL_MouseMotionEvent
+				const SDL_MouseMotionEvent * const p_mme = &p_event->motion;
+
+				BLPoint xy( p_mme->x, p_mme->y );
+				control * p_ctl = find_first_by_point( xy );
+				if ( p_ctl ) {
+					if ( p_ctl != m_hover ) {
+
+						// In case of overlapped controls...
+						if ( m_hover ) {
+							m_hover->on_mouse_leave( xy );
+						}
+
+						// Enter another control...
+						p_ctl->on_mouse_enter( xy );
+						m_hover = p_ctl;
+					}
+
+					// p_mbe->state - button state mask
+					// SDL_BUTTON_LMASK
+					// SDL_BUTTON_MMASK
+					// SDL_BUTTON_RMASK
+					// SDL_BUTTON_X1MASK
+					// SDL_BUTTON_X2MASK
+					p_ctl->on_mouse_motion( xy );
+					break;
+				}
+
+				// ...
+				// Pointer doesn't hits any control...
+				// ...
+
+				// Leave last hovered...
+				if ( m_hover ) {
+					m_hover->on_mouse_leave( xy );
+					m_hover = nullptr;
+				}
+			} break;
 		}
 	}
 
 	const BLImage & image() const { return m_image; }
 	      BLImage & image()       { return m_image; }
 
+	BLFont & font_fawf() { return m_font_fawf; }
 	BLFont & font_sans() { return m_font_sans; }
 	BLFont & font_mono() { return m_font_mono; }
 
-	BLSize get_string_size( const BLFont & font, const char * str ) {
+	BLSize string_size( BLFont & font, const char * str, float size_scale ) {
+
+		float prev_size = font.size();
+		font.setSize( prev_size * size_scale );
+
 		BLGlyphBuffer gb;
 		gb.setUtf8Text( str );
 
@@ -107,19 +160,64 @@ public:
 		font.getTextMetrics( gb, tm );
 
 		BLFontMetrics fm = font.metrics();
-		//std::printf( "capHeight = %f, size = %f, xHeight = %f\n", fm.capHeight, fm.size, fm.xHeight );
+
+		font.setSize( prev_size ); // Restore font size
+
 		return { tm.boundingBox.x1 - tm.boundingBox.x0 + 1, fm.capHeight };
 	}
 
-#if 0
-	BLPoint m_pen_origin;
-	BLPoint m_pen;
-
-	void set_pen( const BLPoint & pen ) {
-		m_pen_origin = m_pen = pen;
+	void fill_string( const BLPoint & xy, BLFont & font, const char * str, float size_scale ) {
+		float prev_size = font.size();
+		font.setSize( prev_size * size_scale );
+		fillUtf8Text( xy, font, str );
+		font.setSize( prev_size ); // Restore font size
 	}
 
-	const char * m_test_text = R"(
+	void fill_text( const BLPoint & xy, BLFont & font, const char * text, float size_scale ) {
+		float prev_size = font.size();
+		font.setSize( prev_size * size_scale );
+
+		BLPoint pen = xy;
+		for ( const char * p_line_begin = text; *p_line_begin; ) {
+
+			// Search EOL...
+			const char * p_line_end = p_line_begin;
+			while ( *p_line_end && *p_line_end != '\n' ) ++p_line_end;
+			std::ptrdiff_t line_len = p_line_end - p_line_begin;
+
+			fillUtf8Text( pen, font, p_line_begin, line_len );
+
+#if 1
+			strokeUtf8Text( pen, font, p_line_begin, line_len );
+#endif
+
+			if ( !*p_line_end ) break; // check for '\0'
+			p_line_begin += line_len + 1;
+
+			pen.x = xy.x;
+			pen.y += font.size() * 1.2f;
+		}
+
+		font.setSize( prev_size ); // Restore font size
+	}
+
+	void draw() {
+		BLContext::begin( m_image );
+
+		for ( control * p_ctl : m_controls ) {
+			if ( p_ctl->is_visible() ) {
+				p_ctl->draw();
+			}
+		}
+
+		// Test
+		//BLFont & fawf = font_fawf();
+		//fill_string( { 350, 350 }, fawf, "\xef\x81\xae", 2 );
+		//fill_string( { 450, 350 }, fawf, "\xef\x81\xb0", 2 );
+
+#if 0
+		// Test
+	const char * test_text = R"(
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
 arising from the use of this software.
@@ -137,70 +235,11 @@ freely, subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 )";
 
-	void test_text() {
-
-		//BLSize size = get_string_size( m_font_sans, m_test_text );
-
-		BLGlyphBuffer gb;
-		gb.setUtf8Text( m_test_text );
-
-		BLTextMetrics tm;
-		m_font_sans.getTextMetrics( gb, tm );
-
-		//BLFontMetrics fm = m_font_sans.metrics();
-		//std::printf( "capHeight = %f, size = %f, xHeight = %f\n", fm.capHeight, fm.size, fm.xHeight );
-		//return { tm.boundingBox.x1 - tm.boundingBox.x0 + 1, fm.capHeight };
-
-		std::printf( "test_text: w = %f, h = %f\n",
-			tm.boundingBox.x1 - tm.boundingBox.x0 + 1,
-			tm.boundingBox.y1 - tm.boundingBox.y0 + 1 );
-		return;
-
-		//const BLFontMetrics& metrics() const;
-		//LOG( "lineGap = %f\n", m_font_sans.metrics().lineGap );
-		//LOG( "size = %f\n", m_font_sans.size() );
-
-		//const char * text = "Привет 123 Blend2D!\nasdpoj123-8";
-		const char * p1 = m_test_text;
-
-		while ( *p1 ) {
-			const char * p2 = p1;
-			while ( *p2 && *p2 != '\n' ) ++p2;
-			std::ptrdiff_t len = p2 - p1;
-
-#if 0
-			m_ctx.setFillStyle( BLRgba32( 255, 255, 255 ) );
-			m_ctx.fillUtf8Text( m_pen, m_font_sans, p1, len );
-
-			m_ctx.setStrokeStyle( BLRgba32( 0, 0, 0 ) );
-			m_ctx.setStrokeWidth( m_font_sans.size() / 64.f );
-			m_ctx.strokeUtf8Text( m_pen, m_font_sans, p1, len );
+		setFillStyle( BLRgba32( 255, 255, 255 ) );
+		setStrokeStyle( BLRgba32( 0, 0, 0 ) );
+		setStrokeWidth( .5f );
+		fill_text( { 350, 100 }, font_sans(), test_text, .75f );
 #endif
-
-			if ( !*p2 ) break; // check for '\0'
-			p1 += len + 1;
-
-			m_pen.x = m_pen_origin.x;
-			m_pen.y += m_font_sans.size() * 1.2f;
-		}
-	}
-#endif
-
-	void draw() {
-		BLContext::begin( m_image );
-
-		for ( control * p_ctl : m_controls ) {
-
-			//BLBox bbox = c->get_bbox();
-			//BLRect rect = c->get_rect();
-
-			//sdl::surface_view surface_view( m_surface, int(rect.x), int(rect.y), int(rect.w), int(rect.h) );
-			//m_san_stack_blur_simd.blur( surface_view, 8, 8, m_parallel_for );
-
-			if ( p_ctl->is_visible() ) {
-				p_ctl->draw( *this );
-			}
-		}
 
 		BLContext::flush( BL_CONTEXT_FLUSH_SYNC ); // This actually synchronizes.
 		BLContext::end();

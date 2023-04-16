@@ -67,7 +67,7 @@ public:
 		, m_backbuffer_copy( copy_surface() )
 		, m_backbuffer_view( surface() )
 		, m_backbuffer_agg( m_backbuffer_view )
-		, m_ui( m_backbuffer_view, 36 )
+		, m_ui( m_backbuffer_view, "./fonts", 36 )
 	{
 		// Console
 		//san::ui::console & con = m_ui.console();
@@ -162,18 +162,18 @@ public:
 			y += 40;
 		}
 
-		// TODO: checkbox
-		//m_ui.add_control( new san::ui::checkbox( { 20, 200 }, "Bench on original size image", [&]( bool value ){ m_bench_on_original_size = value; }, false ) );
+		// Test checkbox...
+		//m_ui.add<san::ui::checkbox>( BLPoint{ 350, 250 }, "Bench on original size image", [&]( bool value ){ printf( "Checkbox: %d\n", int(value) ); /*m_bench_on_original_size = value;*/ }, false );
 	}
 
 
 	int m_mouse_x = -1;
 	int m_mouse_y = -1;
 
-	bool on_event( uint64_t timestamp, const SDL_Event * const p_event ) override {
+	bool on_event( const SDL_Event * const p_event ) override {
 
 		// Forward events to UI...
-		m_ui.on_event( timestamp, p_event );
+		m_ui.on_event( p_event );
 
 		switch ( p_event->type ) {
 			case SDL_MOUSEMOTION:

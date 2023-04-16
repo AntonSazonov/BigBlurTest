@@ -15,62 +15,46 @@ class checkbox : public control {
 	std::function <void(bool)>	m_callback;
 
 	bool						m_is_checked		= false;
-
 	bool						m_is_lbutton_down	= false;
-	bool						m_is_rbutton_down	= false;
 	bool						m_is_hovered		= false;
 
 public:
 	template <typename CallbackT>
-	checkbox( const BLPoint & pos, const std::string & name, CallbackT && callback, bool initial_state = false )
-		: control( { pos.x, pos.y, 0, 0 } )
+	checkbox( ui * p_ctx, const BLPoint & pos, const std::string & name, CallbackT && callback, bool initial_state = false )
+		: control( p_ctx, { pos.x, pos.y, 0, 0 } )
 		, m_name( name )
 		, m_callback( std::forward<CallbackT>( callback ) )
 		, m_is_checked( initial_state ) {}
 
-	void on_event( uint64_t timestamp, const SDL_Event * const p_event ) override {
-		switch ( p_event->type ) {
+	void on_mouse_button( const BLPoint & xy, mouse_button_e button, bool is_pressed ) override {
 
-			case SDL_MOUSEBUTTONDOWN: [[fallthrough]];
-			case SDL_MOUSEBUTTONUP: {
-				const SDL_MouseButtonEvent * const p = &p_event->button;
-
-				bool is_inside = is_point_inside( { double(p->x), double(p->y) } );
-				bool is_down   = p_event->type == SDL_MOUSEBUTTONDOWN;
-
-				// If left button is unpressed by the event and was pressed before...
-				if ( p->button == SDL_BUTTON_LEFT && is_inside && !is_down && m_is_lbutton_down ) {
-					m_is_checked = !m_is_checked;
-					m_callback( m_is_checked );
-				}
-
-				if ( p->button == SDL_BUTTON_LEFT  ) m_is_lbutton_down = is_down && is_inside;
-				if ( p->button == SDL_BUTTON_RIGHT ) m_is_rbutton_down = is_down && is_inside;
-
-			} break;
-
-			case SDL_MOUSEMOTION: {
-				const SDL_MouseMotionEvent * const p = &p_event->motion;
-				m_is_hovered = is_point_inside( { double(p->x), double(p->y) } );
-			} break;
+		// If: button is left && current state is up && previous state is down...
+		if ( button == mouse_button_e::left && !is_pressed && m_is_lbutton_down ) {
+			m_is_checked = !m_is_checked;
+			m_callback( m_is_checked );
 		}
+
+		m_is_lbutton_down = is_pressed && button == mouse_button_e::left;
 	}
 
-	void draw( ui & ctx ) /*const*/ override {
+	void on_mouse_enter( const BLPoint & xy ) override { m_is_hovered = true; }
+	void on_mouse_leave( const BLPoint & xy ) override { m_is_hovered = false; }
 
-		BLFont &	font_sans = ctx.font_sans();
-		BLSize		text_size = ctx.get_string_size( font_sans, m_name.c_str() );
+	void draw() override {
+
+		BLFont & sans = m_ctx->font_sans();
+		BLSize   size = m_ctx->string_size( sans, m_name.c_str(), .6f );
 
 		// Check radius
-		double radius = text_size.h / 2;
+		double radius = size.h / 2;
 
 		// Control rect.
-		double rect_expand = text_size.h / 2;
+		double rect_expand = size.h / 2;
 		BLRect rect(
 			m_rect.x,
 			m_rect.y,
-			text_size.w + rect_expand * 2 + radius * 2,
-			text_size.h + rect_expand * 2 );
+			size.w + rect_expand * 2 + radius * 2,
+			size.h + rect_expand * 2 );
 
 		// Update control's rect size according to text size...
 		m_rect = rect;
@@ -80,37 +64,34 @@ public:
 
 
 		// Draw background
-		ctx.setFillStyle( BLRgba32( 0, 0, 0, 159 ) );
-		ctx.fillRoundRect( rect, rect_expand /*round radius*/ );
+		m_ctx->setFillStyle( BLRgba32( 0, 0, 0, 159 ) );
+		//m_ctx->fillRoundRect( rect, rect_expand /*round radius*/ );
+		m_ctx->fillRoundRect( rect, radius * 2 );
 
 		if ( m_is_hovered ) {
-			ctx.setStrokeStyle( BLRgba32( 255, 255, 255 ) ); // hovered
+			m_ctx->setStrokeStyle( BLRgba32( 255, 255, 255 ) ); // hovered
 		} else {
-			ctx.setStrokeStyle( BLRgba32( 127, 127, 127 ) ); // unhovered
+			m_ctx->setStrokeStyle( BLRgba32( 127, 127, 127 ) ); // unhovered
 		}
-#if 0
-		ctx.setStrokeWidth( 1.5 );
-		ctx.strokeRoundRect( rect, rect_expand /*round radius*/ );
-#endif
 
 		// Draw check circle
 		if ( m_is_checked ) {
-			ctx.setFillStyle( BLRgba32( 255, 255, 255 ) );
-			ctx.fillCircle( rect.x + radius + rect_expand, rect_center_y, radius / 2 );
+			m_ctx->setFillStyle( BLRgba32( 255, 255, 255 ) );
+			m_ctx->fillCircle( rect.x + radius + rect_expand, rect_center_y, radius / 2 );
 		}
-		ctx.setStrokeWidth( radius / 4 );
-		ctx.strokeCircle( rect.x + radius + rect_expand, rect_center_y, radius );
+		m_ctx->setStrokeWidth( radius / 4 );
+		m_ctx->strokeCircle( rect.x + radius + rect_expand, rect_center_y, radius );
 
 		// Draw text
 		if ( m_is_hovered ) {
-			ctx.setFillStyle( BLRgba32( 255, 255, 255 ) );
+			m_ctx->setFillStyle( BLRgba32( 255, 255, 255 ) );
 		} else {
-			ctx.setFillStyle( BLRgba32( 191, 191, 191 ) );
+			m_ctx->setFillStyle( BLRgba32( 191, 191, 191 ) );
 		}
 
-		double x = rect.w / 2 - text_size.w / 2;
-		double y = rect.h / 2 - text_size.h / 2;
-		ctx.fillUtf8Text( BLPoint( rect.x + x + radius * 2 - rect_expand, rect.y + rect.h - y ), font_sans, m_name.c_str() );
+		double x = rect.w / 2 - size.w / 2;
+		double y = rect.h / 2 - size.h / 2;
+		m_ctx->fill_string( BLPoint( rect.x + x + radius * 2 - rect_expand, rect.y + rect.h - y ), sans, m_name.c_str(), .6f );
 	}
 }; // class checkbox
 

@@ -38,7 +38,7 @@ public:
 }; // class divisor
 
 
-#if !defined( __SSE4_1__ ) && !defined( __SSE2___ )
+#if !defined( __SSE4_1__ ) && !defined( __SSE2__ )
  #error "At least SSE2 support must be enabled by compiler."
 #endif
 

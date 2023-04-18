@@ -73,14 +73,14 @@ target_precompile_headers( ${BBT_PROJECT_NAME} PUBLIC
 
 # I set DEBUG_OPT_LEVEL to "-O1" for testing by myself. But for "GitHub build action" this var. is empty and optimization level will be set to "-O0" for faster build process.
 if( NOT DEFINED DEBUG_OPT_LEVEL )
-	set( DEBUG_OPT_LEVEL "-O0" )
+	set( DEBUG_OPT_LEVEL -O0 )
 endif()
 
 set( CMAKE_CXX_FLAGS_DEBUG "${DEBUG_OPT_LEVEL} ${CMAKE_CXX_FLAGS_DEBUG}" )
 
 # -march=native -Ofast -ffast-math -funroll-loops -Wall -fno-exceptions -fno-rtti ) # -msse2 -Wextra -Wpedantic
-set( GNU_AND_CLANG_COMMON_COMP_OPTS "-march=native -Wall -fno-exceptions -fno-rtti" )
-set( GNU_AND_CLANG_COMMON_LINK_OPTS "-mconsole" )
+set( GNU_AND_CLANG_COMMON_COMP_OPTS -march=native -Wall -fno-exceptions -fno-rtti )
+set( GNU_AND_CLANG_COMMON_LINK_OPTS -mconsole )
 if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
 	target_compile_options( ${BBT_PROJECT_NAME} PRIVATE ${GNU_AND_CLANG_COMMON_COMP_OPTS} )
 	target_link_options   ( ${BBT_PROJECT_NAME} PRIVATE ${GNU_AND_CLANG_COMMON_LINK_OPTS} )

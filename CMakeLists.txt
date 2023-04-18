@@ -18,8 +18,6 @@ add_subdirectory( src/blend2d )
 
 find_package( SDL2 REQUIRED )
 
-set( COMPILE_OPTS_FILE ${CMAKE_SOURCE_DIR}/main_compile_opts.hpp )
-
 add_executable( main
 	main.cpp
 
@@ -48,6 +46,7 @@ add_executable( main
 	src/san_ui_ctrl_link.hpp
 
 	src/san_image_view.hpp
+	src/san_image_list.hpp
 
 	src/san_blur_gaussian_naive.hpp
 
@@ -60,9 +59,7 @@ add_executable( main
 	src/san_stack_blur_simd_fastest.hpp
 	src/san_stack_blur_simd_fastest_2.hpp
 
-	src/san_image_list.hpp
-
-	${COMPILE_OPTS_FILE} )
+	)
 
 target_precompile_headers( main PUBLIC
 	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_color_rgba.h$<ANGLE-R>>"
@@ -74,13 +71,21 @@ target_precompile_headers( main PUBLIC
 
 set( CMAKE_CXX_FLAGS_DEBUG "-O1 ${CMAKE_CXX_FLAGS_DEBUG}" )
 
-if( MSVC )
+if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
+	#target_compile_options( main PRIVATE -march=native -Ofast -ffast-math -funroll-loops -Wall -fno-exceptions -fno-rtti ) # -msse2 -Wextra -Wpedantic
+	target_compile_options( main PRIVATE -march=native -Wall -fno-exceptions -fno-rtti )
+	target_link_options   ( main PRIVATE -mconsole -s )
+
+elseif( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
+	target_compile_options( main PRIVATE -march=native -Wall -fno-exceptions -fno-rtti -Wno-class-memaccess )
+	target_link_options   ( main PRIVATE -mconsole -s )
+
+elseif( CMAKE_CXX_COMPILER_ID STREQUAL "Intel" )
+	# ...
+
+elseif( CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" )
 	target_compile_options( main PRIVATE /W4 )
 	target_link_options   ( main PRIVATE /subsystem:console )
-else()
-	#target_compile_options( main PRIVATE -march=native -Ofast -ffast-math -funroll-loops -Wall -fno-exceptions -fno-rtti ) # -msse2 -Wextra -Wpedantic
-	target_compile_options( main PRIVATE -march=native -Wall -fno-exceptions -fno-rtti ) # -msse2 -Wextra -Wpedantic
-	target_link_options   ( main PRIVATE -mconsole -s ) # -static
 endif()
 
 get_target_property( COMPILE_OPTS main COMPILE_OPTIONS )
@@ -91,29 +96,19 @@ else()
 	set( COMPILE_OPTS "${CMAKE_CXX_FLAGS_RELEASE} ${COMPILE_OPTS}" )
 endif()
 
+string( REPLACE ";" " " COMPILE_OPTS_STR "${COMPILE_OPTS}" )
+
 message( STATUS " -------------------------------------------" )
 message( STATUS " Compiler ID: ${CMAKE_CXX_COMPILER_ID}" )
 message( STATUS " Build  type: ${CMAKE_BUILD_TYPE}" )
-message( STATUS " Build flags: ${COMPILE_OPTS}" )
+message( STATUS " Build flags: ${COMPILE_OPTS_STR}" )
 message( STATUS " -------------------------------------------" )
 
-add_custom_command(
-	OUTPUT ${COMPILE_OPTS_FILE}
-	COMMAND ${CMAKE_COMMAND} -E echo "static const char * g_compiler = \"${CMAKE_CXX_COMPILER}\";" > ${COMPILE_OPTS_FILE}
-	COMMAND ${CMAKE_COMMAND} -E echo "static const char * g_build_type = \"${CMAKE_BUILD_TYPE}\";" >> ${COMPILE_OPTS_FILE}
-	COMMAND ${CMAKE_COMMAND} -E echo "static const char * g_compile_options = \"${COMPILE_OPTS}\";" >> ${COMPILE_OPTS_FILE}
-	VERBATIM
-)
+set( SAN_CMAKE_CONFIG_FILE "src/san_cmake_config.hpp" )
+configure_file( ${CMAKE_SOURCE_DIR}/${SAN_CMAKE_CONFIG_FILE}.in ${CMAKE_SOURCE_DIR}/${SAN_CMAKE_CONFIG_FILE} )
 
-add_custom_target         ( opts DEPENDS ${COMPILE_OPTS_FILE} )
-add_dependencies          ( main opts )
 target_include_directories( main PRIVATE ${CMAKE_SOURCE_DIR} )
 target_include_directories( main PRIVATE ${CMAKE_SOURCE_DIR}/src )
 target_link_libraries     ( main PRIVATE SDL2::SDL2 blend2d::blend2d )
 set_target_properties     ( main PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR} )
 set_target_properties     ( main PROPERTIES OUTPUT_NAME "${CMAKE_PROJECT_NAME}-${CMAKE_CXX_COMPILER_ID}-${CMAKE_BUILD_TYPE}" )
-
-# Remove COMPILE_OPTS_FILE ...
-add_custom_command( TARGET main PRE_BUILD
-	COMMAND ${CMAKE_COMMAND} -E remove ${COMPILE_OPTS_FILE}
-)

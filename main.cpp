@@ -39,7 +39,8 @@
 #include "san_stack_blur_simd_fastest.hpp"		// Optimization tests...
 #include "san_stack_blur_simd_fastest_2.hpp"
 
-#include "main_compile_opts.hpp"
+#include "san_cmake_config.hpp"
+//#include "main_compile_opts.hpp"
 
 //#include "san_recursive.hpp"
 //#include "san_test_sb.hpp"
@@ -130,13 +131,10 @@ public:
 			const int th = 20;
 			int h = m_backbuffer_view.height() - 5;
 			m_ui.add<san::ui::link>   ( BLPoint{ 10, double(h-=th) }, "https://github.com/AntonSazonov/BigBlurTest" );
-			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "Compile options: " + std::string( g_compile_options ) );
-#ifdef __clang__
-			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "       Compiler: " + std::string( __VERSION__ ) );
-#else
-			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "       Compiler: " + std::string( g_compiler ) );
-#endif
-			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "     Build type: " + std::string( g_build_type ) );	
+			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "Compile options: " + san::cmake::compile_opts() );
+			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, " SIMD supported: " + san::cmake::SIMD_supported() );
+			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "       Compiler: " + san::cmake::compiler_id() );
+			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "     Build type: " + san::cmake::build_type() );	
 			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "        Threads: " + std::to_string( m_parallel_for.num_threads() ) );
 			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "Use arrays <- and -> to change image." );
 		}

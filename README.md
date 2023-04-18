@@ -41,7 +41,7 @@ Thus, 8 iterations / 3 threads = 2 blocks, remainder = 2.
  * Thread #3: [4;8)  - size 4
 
  This approach has two disadvantages:
-  1. Non-uniform distribution
+  1. Non-uniform range distribution
   2. Last thread have biggest block size and begins after all previous threads
 
  **New algorithm** (remainder is distributed over first threads):

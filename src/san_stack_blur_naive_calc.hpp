@@ -2,15 +2,17 @@
 
 namespace san::stack_blur {
 
+template <typename ValueT = int>
 class naive_calc {
-	int	c[4];
+	ValueT	c[4];
 
 public:
 	naive_calc() {
 		c[0] = c[1] = c[2] = c[3] = 0;
 	}
 
-	naive_calc( int x, int y, int z, int w ) {
+	//naive_calc( int x, int y, int z, int w ) {
+	naive_calc( ValueT x, ValueT y, ValueT z, ValueT w ) {
 		c[0] = x;
 		c[1] = y;
 		c[2] = z;
@@ -55,7 +57,7 @@ public:
 		return *this;
 	}
 
-	naive_calc operator * ( int value ) const {
+	naive_calc operator * ( ValueT value ) const {
 		return naive_calc(
 			c[0] * value,
 			c[1] * value,
@@ -63,7 +65,7 @@ public:
 			c[3] * value );
 	}
 
-	naive_calc operator / ( int value ) const {
+	naive_calc operator / ( ValueT value ) const {
 		return naive_calc(
 			c[0] / value,
 			c[1] / value,

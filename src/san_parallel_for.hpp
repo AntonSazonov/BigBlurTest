@@ -61,10 +61,11 @@ public:
 		if ( !m_num_threads ) m_num_threads = std::thread::hardware_concurrency();
 		assert( m_num_threads > 0 );
 
+#ifndef NDEBUG
 		std::printf( "%s: %d threads created.\n", __FUNCTION__, m_num_threads );
+#endif
 
 		m_threads = std::make_unique<std::thread[]>( m_num_threads );
-
 		m_running = true;
 		for ( int i = 0; i < m_num_threads; i++ ) {
 			m_threads[i] = std::thread( &parallel_for::worker, this );
@@ -73,10 +74,8 @@ public:
 
 	virtual ~parallel_for() {
 		wait();
-
 		m_running = false;
 		m_task_available_cv.notify_all();
-
 		for ( int i = 0; i < m_num_threads; ++i ) {
 			m_threads[i].join();
 		}

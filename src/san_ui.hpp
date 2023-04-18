@@ -22,11 +22,9 @@ class ui : public BLContext {
 
 	BLImage 				m_image;
 
-	BLFontFace				m_face_fawf;	// FontAwesome-WebFont
 	BLFontFace				m_face_sans;
 	BLFontFace				m_face_mono;
 
-	BLFont					m_font_fawf;	// FontAwesome-WebFont
 	BLFont					m_font_sans;
 	BLFont					m_font_mono;
 
@@ -58,11 +56,9 @@ public:
 	ui( san::image_view & image, const std::string & path_fonts, double font_size = 32. ) : m_font_size( font_size ) {
 		m_image.createFromData( image.width(), image.height(), BL_FORMAT_PRGB32 /*BL_FORMAT_XRGB32*/, image.ptr(), image.stride() );
 
-		load_font( m_face_fawf, path_fonts + "/fontawesome-webfont.ttf" );
 		load_font( m_face_sans, path_fonts + "/NotoSans-Regular.ttf" );
 		load_font( m_face_mono, path_fonts + "/SourceCodePro-Medium.otf" );
 
-		m_font_fawf.createFromFace( m_face_fawf, m_font_size );
 		m_font_sans.createFromFace( m_face_sans, m_font_size );
 		m_font_mono.createFromFace( m_face_mono, m_font_size );
 	}
@@ -160,7 +156,6 @@ public:
 	const BLImage & image() const { return m_image; }
 	      BLImage & image()       { return m_image; }
 
-	BLFont & font_fawf() { return m_font_fawf; }
 	BLFont & font_sans() { return m_font_sans; }
 	BLFont & font_mono() { return m_font_mono; }
 
@@ -228,11 +223,6 @@ public:
 				p_ctl->draw();
 			}
 		}
-
-		// Test
-		//BLFont & fawf = font_fawf();
-		//fill_string( { 350, 350 }, fawf, "\xef\x81\xae", 2 );
-		//fill_string( { 450, 350 }, fawf, "\xef\x81\xb0", 2 );
 
 #if 0
 		// Test

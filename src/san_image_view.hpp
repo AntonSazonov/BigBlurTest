@@ -21,6 +21,8 @@ public:
 		, m_stride( p->pitch )
 		, m_bytes_per_pixel( SDL_BYTESPERPIXEL( p->format->format ) ) {}
 
+	image_view( std::shared_ptr <SDL_Surface> & p ) : image_view( p.get() ) {}
+
  #endif
 #else
  #error "No SDL2 found."
@@ -31,11 +33,20 @@ public:
 	int			width()					const { return m_width; }
 	int			height()				const { return m_height; }
 	int			stride()				const { return m_stride; }
+	int			bpp()					const { return m_bytes_per_pixel; } // Bytes(!) per pixel
+
+#if 0
 	uint8_t *	ptr()					const { return m_data; }
 	uint8_t *	row_ptr( int y )		const { return ptr() + y * m_stride; }
 	uint8_t *	col_ptr( int x )		const { return ptr() + x * m_bytes_per_pixel; }
 	uint8_t *	pix_ptr( int x, int y )	const { return row_ptr( y ) + x * m_bytes_per_pixel; }
-
+#else
+#warning "TODO: template pointer type impls."
+	uint8_t *	ptr()					const { return m_data; }
+	uint8_t *	row_ptr( int y )		const { return ptr() + y * m_stride; }
+	uint8_t *	col_ptr( int x )		const { return ptr() + x * m_bytes_per_pixel; }
+	uint8_t *	pix_ptr( int x, int y )	const { return row_ptr( y ) + x * m_bytes_per_pixel; }
+#endif
 }; // class image_view
 
 } // namespace san

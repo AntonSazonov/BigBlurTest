@@ -71,19 +71,26 @@ target_precompile_headers( ${BBT_PROJECT_NAME} PUBLIC
 	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_config.h$<ANGLE-R>>"
 	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_pixfmt_transposer.h$<ANGLE-R>>" )
 
+# I set DEBUG_OPT_LEVEL to "-O1" for testing by myself. But for "GitHub build action" this var. is empty and optimization level will be set to "-O0" for faster build process.
+if( NOT DEFINED DEBUG_OPT_LEVEL )
+	set( DEBUG_OPT_LEVEL "-O0" )
+endif()
+
 set( CMAKE_CXX_FLAGS_DEBUG "${DEBUG_OPT_LEVEL} ${CMAKE_CXX_FLAGS_DEBUG}" )
 
+# -march=native -Ofast -ffast-math -funroll-loops -Wall -fno-exceptions -fno-rtti ) # -msse2 -Wextra -Wpedantic
+set( GNU_AND_CLANG_COMMON_COMP_OPTS "-march=native -Wall -fno-exceptions -fno-rtti" )
+set( GNU_AND_CLANG_COMMON_LINK_OPTS "-mconsole" )
 if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
-	#target_compile_options( ${BBT_PROJECT_NAME} PRIVATE -march=native -Ofast -ffast-math -funroll-loops -Wall -fno-exceptions -fno-rtti ) # -msse2 -Wextra -Wpedantic
-	target_compile_options( ${BBT_PROJECT_NAME} PRIVATE -march=native -Wall -fno-exceptions -fno-rtti )
-	target_link_options   ( ${BBT_PROJECT_NAME} PRIVATE -mconsole -s )
+	target_compile_options( ${BBT_PROJECT_NAME} PRIVATE ${GNU_AND_CLANG_COMMON_COMP_OPTS} )
+	target_link_options   ( ${BBT_PROJECT_NAME} PRIVATE ${GNU_AND_CLANG_COMMON_LINK_OPTS} )
 
 elseif( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
-	target_compile_options( ${BBT_PROJECT_NAME} PRIVATE -march=native -Wall -fno-exceptions -fno-rtti -Wno-class-memaccess )
-	target_link_options   ( ${BBT_PROJECT_NAME} PRIVATE -mconsole -s )
+	target_compile_options( ${BBT_PROJECT_NAME} PRIVATE ${GNU_AND_CLANG_COMMON_COMP_OPTS} -Wno-class-memaccess )
+	target_link_options   ( ${BBT_PROJECT_NAME} PRIVATE ${GNU_AND_CLANG_COMMON_LINK_OPTS} )
 
 elseif( CMAKE_CXX_COMPILER_ID STREQUAL "Intel" )
-	# ...
+	# ... what is Intel?
 
 elseif( CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" )
 	target_compile_options( ${BBT_PROJECT_NAME} PRIVATE /W4 )

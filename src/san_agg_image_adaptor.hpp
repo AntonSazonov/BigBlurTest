@@ -24,11 +24,8 @@ public:
 		, m_w( m_image.width() )
 		, m_h( m_image.height() ) {}
 
+// May be useful in future...
 #if 0
-	agg_image_adaptor( sdl::surface & p_surface ) :
-		m_surface( p_surface ),
-		m_w( m_surface.get_width() ), m_h( m_surface.get_height() ) {}
-
 	// Bound surface inside surface
 	agg_image_adaptor( sdl::surface & p_surface, int x, int y, int w, int h ) :
 		m_surface( p_surface ),

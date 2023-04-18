@@ -5,6 +5,7 @@ test*
 x
 y
 z
+deprecated
 *.pdf
 *.log
 

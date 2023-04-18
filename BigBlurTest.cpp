@@ -3,8 +3,8 @@
 #include <memory>
 #include <chrono>
 
-#include "sdl_window_rgba.hpp"
-#include "src/stb_impl.hpp"
+#include "san_window.hpp"
+#include "stb_impl.hpp"
 
 #include "agg/agg_color_rgba.h"
 #include "agg/agg_blur.h"
@@ -40,13 +40,8 @@
 #include "san_stack_blur_simd_fastest_2.hpp"
 
 #include "san_cmake_config.hpp"
-//#include "main_compile_opts.hpp"
 
-//#include "san_recursive.hpp"
-//#include "san_test_sb.hpp"
-//#include "san_test_naive.hpp"
-
-class app final : public sdl::window_rgba {
+class app final : public san::window {
 	std::shared_ptr <SDL_Surface>		m_backbuffer_copy;	// For scaled image
 	san::image_view						m_backbuffer_view;	// View of window's backbuffer
 	san::agg_image_adaptor				m_backbuffer_agg;	// Image adaptor for AGG
@@ -77,7 +72,7 @@ class app final : public sdl::window_rgba {
 
 public:
 	app( int width, int height )
-		: sdl::window_rgba( width, height, "Blur Test" )
+		: san::window( width, height, "Big Blur Test" )
 		, m_backbuffer_copy( copy_surface() )
 		, m_backbuffer_view( surface() )
 		, m_backbuffer_agg( m_backbuffer_view )

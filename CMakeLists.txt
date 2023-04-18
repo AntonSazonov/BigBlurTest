@@ -23,7 +23,6 @@ find_package( SDL2 REQUIRED )
 add_executable( ${BBT_PROJECT_NAME}
 	BigBlurTest.cpp
 
-	src/sdl_window_rgba.hpp
 	src/stb/stb_image.h
 	#src/stb/stb_image_resize.h
 	src/stb_impl.hpp
@@ -37,6 +36,7 @@ add_executable( ${BBT_PROJECT_NAME}
 	src/agg/agg_config.h
 	src/agg/agg_pixfmt_transposer.h
 
+	src/san_window.hpp
 	src/san_agg_image_adaptor.hpp
 
 	src/san_ui.hpp

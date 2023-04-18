@@ -3,9 +3,9 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 
-namespace sdl {
+namespace san {
 
-class window_rgba {
+class window {
 	bool			m_is_valid	= false;
 
 protected:
@@ -14,7 +14,7 @@ protected:
 	bool			m_wait_mode	= true;
 
 public:
-	window_rgba( int width, int height, const char * title = "" ) {
+	window( int width, int height, const char * title = "" ) {
 		SDL_LogSetPriority( SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO );
 		SDL_SetMainReady();
 
@@ -44,7 +44,7 @@ public:
 		m_is_valid = true;
 	}
 
-	virtual ~window_rgba() {
+	virtual ~window() {
 		if ( m_window ) SDL_DestroyWindow( m_window );
 		SDL_Quit();
 	}
@@ -152,4 +152,4 @@ public:
 	}
 }; // class window
 
-} // namespace sdl
+} // namespace san

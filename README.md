@@ -35,16 +35,16 @@ for ( int i = 0; i < 8; i++ ) ...
 And we want to break him into 3 threads.  
 Thus, 8 iterations / 3 threads = 3 threads with 2 iterations + 2 remained iterations.  
 
-**Old algorithm** (remainder is added to last thread):
+### Old algorithm (remainder is added to last thread):
  * Thread #1: [0;2)  - size 2 
  * Thread #2: [2;4)  - size 2
  * Thread #3: [4;8)  - size 4
 
  This approach has two disadvantages:
   1. Non-uniform range distribution
-  2. The last thread have biggest block size and begins its execution after all previous threads already has started
+  2. The last thread have biggest block size and begins its execution after all previous threads already has started. This is sad.
 
- **New algorithm** (remainder is distributed over first threads):
+### New algorithm (remainder is distributed over first threads):
  * Thread #1: [0;3)  - size 3
  * Thread #2: [3;6)  - size 3
  * Thread #3: [6;8)  - size 2

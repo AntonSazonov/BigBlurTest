@@ -49,6 +49,8 @@ add_executable( main
 
 	src/san_image_view.hpp
 
+	src/san_blur_gaussian_naive.hpp
+
 	src/san_stack_blur_luts.hpp
 	src/san_stack_blur_naive.hpp
 	src/san_stack_blur_naive_calc.hpp

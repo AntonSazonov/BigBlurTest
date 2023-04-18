@@ -71,7 +71,7 @@ target_precompile_headers( ${BBT_PROJECT_NAME} PUBLIC
 	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_config.h$<ANGLE-R>>"
 	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_pixfmt_transposer.h$<ANGLE-R>>" )
 
-set( CMAKE_CXX_FLAGS_DEBUG "-O1 ${CMAKE_CXX_FLAGS_DEBUG}" )
+set( CMAKE_CXX_FLAGS_DEBUG "${DEBUG_OPT_LEVEL} ${CMAKE_CXX_FLAGS_DEBUG}" )
 
 if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
 	#target_compile_options( ${BBT_PROJECT_NAME} PRIVATE -march=native -Ofast -ffast-math -funroll-loops -Wall -fno-exceptions -fno-rtti ) # -msse2 -Wextra -Wpedantic

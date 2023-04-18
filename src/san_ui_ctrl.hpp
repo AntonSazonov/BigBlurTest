@@ -6,28 +6,17 @@
 
 namespace san::ui {
 
-enum class mouse_button_e : uint8_t {
-	left	= SDL_BUTTON_LEFT,
-	middle	= SDL_BUTTON_MIDDLE,
-	right	= SDL_BUTTON_RIGHT,
-	x1		= SDL_BUTTON_X1,
-	x2		= SDL_BUTTON_X2
-}; // enum class mouse_button_e
-
-
-class ui;
-
 class control {
 	control( const control & ) = delete;
 	control & operator = ( const control & ) = delete;
 
 protected:
-	ui *		m_ctx;
-	BLRect		m_rect;
-	bool		m_visible	= true;
+	ui <control> *	m_ctx;
+	BLRect			m_rect;
+	bool			m_visible	= true;
 
 public:
-	control( ui * p_ctx, const BLRect & rect )
+	control( ui <control> * p_ctx, const BLRect & rect )
 		: m_ctx( p_ctx )
 		, m_rect( rect )
 	{
@@ -43,7 +32,22 @@ public:
 	virtual void on_mouse_leave( const BLPoint & ) {}
 	virtual void draw() = 0;
 
-	BLBox bbox() const { return BLBox( m_rect.x, m_rect.y, m_rect.x + m_rect.w - 1, m_rect.y + m_rect.h - 1 ); }
+	// Fit control's rect. to string dimentions + small expand
+	BLSize fit_to_string( BLFont & font, const char * str, float font_size ) {
+		//printf( "fit_to_string(): %f\n", font_size );
+		BLSize size = m_ctx->string_size( font, str, font_size );
+		m_rect.w = size.w + size.h / 2;
+		m_rect.h = size.h + size.h / 2;
+		return size; // string size
+	}
+
+	BLBox bbox() const {
+		return BLBox(
+			m_rect.x,
+			m_rect.y,
+			m_rect.x + m_rect.w - 1,
+			m_rect.y + m_rect.h - 1 );
+	}
 
 	bool is_point_inside( const BLPoint & pt ) const { 	return bbox().contains( pt ); }
 	bool is_visible() const { return m_visible; }

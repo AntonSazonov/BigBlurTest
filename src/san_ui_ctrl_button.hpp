@@ -14,16 +14,27 @@ class button : public control {
 	std::string				m_name;
 	std::function <void()>	m_callback;
 
+	static constexpr float	m_font_scale		= .6f;
+	BLFont &				m_font;
+	BLSize					m_text_size;
+
 	bool					m_is_lbutton_down	= false;
 	//bool					m_is_rbutton_down	= false;
 	bool					m_is_hovered		= false;
 
 public:
 	template <typename CallbackT>
-	button( ui * p_ctx, const BLPoint & pos, const std::string & name, CallbackT && callback )
+	button( ui <control> * p_ctx, const BLPoint & pos, const std::string & name, CallbackT && callback )
 		: control( p_ctx, { pos.x, pos.y, 0, 0 } )
 		, m_name( name )
-		, m_callback( std::forward<CallbackT>( callback ) ) {}
+		, m_callback( std::forward<CallbackT>( callback ) )
+		, m_font( p_ctx->font_sans() )
+		, m_text_size( fit_to_string( m_font, m_name.c_str(), m_font_scale ) )
+	{
+		// Expand size...
+		m_rect.w += m_text_size.h / 2;
+		m_rect.h += m_text_size.h / 2;
+	}
 
 	void on_mouse_button( const BLPoint & xy, mouse_button_e button, bool is_pressed ) override {
 
@@ -41,46 +52,32 @@ public:
 
 	void draw() override {
 
-		BLFont & font = m_ctx->font_sans();
-		BLSize   size = m_ctx->string_size( font, m_name.c_str(), .6f );
+		double expand = m_text_size.h / 2;
+		double round = expand * 1.5;
 
-
-		double expand = size.h / 2;
-		BLRect rect( m_rect.x, m_rect.y, size.w + expand * 2, size.h + expand * 2 );
-		m_rect = rect;
-
-		double round_radius = expand * 1.5;
+		// Rect.
 		if ( m_is_hovered ) {
-
-			// Solid
-			m_ctx->setFillStyle( BLRgba32( 0, 0, 0, 255 ) );
-			m_ctx->fillRoundRect( rect, round_radius );
-
-			// Stroke
-			//m_ctx->setStrokeStyle( BLRgba32( 127, 255, 191 ) ); // hovered
-			m_ctx->setStrokeStyle( BLRgba32( 255, 255, 255 ) ); // hovered
+			m_ctx->setFillStyle( BLRgba32( 32, 32, 32, 255 ) );	// Solid
+			m_ctx->setStrokeStyle( BLRgba32( 255, 255, 255 ) );	// Stroke
 			m_ctx->setStrokeWidth( 1.5 );
-			m_ctx->strokeRoundRect( rect, round_radius );
 		} else {
-			// Solid
-			m_ctx->setFillStyle( BLRgba32( 0, 0, 0, 191 ) );
-			m_ctx->fillRoundRect( rect, round_radius );
-
-			// Stroke
-			m_ctx->setStrokeStyle( BLRgba32( 63, 63, 63 ) ); // unhovered
+			m_ctx->setFillStyle( BLRgba32( 0, 0, 0, 191 ) );	// Solid
+			m_ctx->setStrokeStyle( BLRgba32( 63, 63, 63 ) );	// Stroke
 			m_ctx->setStrokeWidth( 1.2 );
-			m_ctx->strokeRoundRect( rect, round_radius );
 		}
+		m_ctx->fillRoundRect( m_rect, round );
+		m_ctx->strokeRoundRect( m_rect, round );
 
+		// Text
 		if ( m_is_hovered ) {
 			m_ctx->setFillStyle( BLRgba32( 255, 255, 255 ) );
 		} else {
 			m_ctx->setFillStyle( BLRgba32( 191, 191, 191 ) );
 		}
 
-		double x = rect.w / 2 - size.w / 2;
-		double y = rect.h / 2 - size.h / 2;
-		m_ctx->fill_string( BLPoint( rect.x + x, rect.y + rect.h - y ), font, m_name.c_str(), .6f );
+		double x = m_rect.w / 2 - m_text_size.w / 2;
+		double y = m_rect.h / 2 - m_text_size.h / 2;
+		m_ctx->fill_string( BLPoint( m_rect.x + x, m_rect.y + m_rect.h - y ), m_font, m_name.c_str(), m_font_scale );
 	}
 }; // class button
 

@@ -3,12 +3,22 @@
 #include <list>
 #include <blend2d.h>
 //#include "san_ui_console.hpp"
-#include "san_ui_ctrl.hpp"
 
 namespace san::ui {
 
+enum class mouse_button_e : uint8_t {
+	left	= SDL_BUTTON_LEFT,
+	middle	= SDL_BUTTON_MIDDLE,
+	right	= SDL_BUTTON_RIGHT,
+	x1		= SDL_BUTTON_X1,
+	x2		= SDL_BUTTON_X2
+}; // enum class mouse_button_e
+
+
+template <typename ControlBaseT>
 class ui : public BLContext {
 	double					m_font_size;
+	BLPoint					m_scale			= { 1, 1 };
 
 	BLImage 				m_image;
 
@@ -21,9 +31,9 @@ class ui : public BLContext {
 	BLFont					m_font_mono;
 
 	//console					m_console;
-	std::list <control *>	m_controls;
-	control *				m_hover			= nullptr;	// control under mouse pointer
-	control *				m_focus			= nullptr;	// active control
+	std::list <ControlBaseT *>	m_controls;
+	ControlBaseT *				m_hover			= nullptr;	// control under mouse pointer
+	ControlBaseT *				m_focus			= nullptr;	// active control
 
 	bool load_font( BLFontFace & face, const std::string & name ) {
 		if ( face.createFromFile( name.c_str() ) ) {
@@ -33,10 +43,10 @@ class ui : public BLContext {
 		return true;
 	}
 
-	control * find_first_by_point( const BLPoint & xy ) {
+	ControlBaseT * find_first_by_point( const BLPoint & xy ) {
 		// Process controls in reverse order...
 		for ( auto it = m_controls.rbegin(), end = m_controls.rend(); it != end; ++it ) {
-			control * p_ctl = *it;
+			ControlBaseT * p_ctl = *it;
 			if ( p_ctl->is_point_inside( xy ) ) {
 				return p_ctl;
 			}
@@ -46,7 +56,7 @@ class ui : public BLContext {
 
 public:
 	ui( san::image_view & image, const std::string & path_fonts, double font_size = 32. ) : m_font_size( font_size ) {
-		m_image.createFromData( image.width(), image.height(), BL_FORMAT_XRGB32, image.ptr(), image.stride() );
+		m_image.createFromData( image.width(), image.height(), BL_FORMAT_PRGB32 /*BL_FORMAT_XRGB32*/, image.ptr(), image.stride() );
 
 		load_font( m_face_fawf, path_fonts + "/fontawesome-webfont.ttf" );
 		load_font( m_face_sans, path_fonts + "/NotoSans-Regular.ttf" );
@@ -58,15 +68,17 @@ public:
 	}
 
 	virtual ~ui() {
-		for ( control * p_ctl : m_controls ) delete p_ctl;
+		for ( ControlBaseT * p_ctl : m_controls ) delete p_ctl;
 	}
+
+	operator BLImage & () { return m_image; }
 
 //	const class console & console() const { return m_console; }
 //	      class console & console()       { return m_console; }
 
 	template <typename CtlT, typename ... Args>
-	control * add( Args && ... args ) {
-		control * p_ctl = new (std::nothrow) CtlT( this, std::forward<Args>(args)... );
+	ControlBaseT * add( Args && ... args ) {
+		ControlBaseT * p_ctl = new (std::nothrow) CtlT( this, std::forward<Args>( args )... );
 		if ( p_ctl ) m_controls.push_back( p_ctl );
 		return p_ctl;
 	}
@@ -85,7 +97,7 @@ public:
 				const SDL_MouseButtonEvent * const p_mbe = &p_event->button;
 
 				BLPoint xy( p_mbe->x, p_mbe->y );
-				control * p_ctl = find_first_by_point( xy );
+				ControlBaseT * p_ctl = find_first_by_point( xy );
 				if ( p_ctl ) {
 					m_focus = p_ctl; // Set focus on control
 
@@ -104,7 +116,7 @@ public:
 				const SDL_MouseMotionEvent * const p_mme = &p_event->motion;
 
 				BLPoint xy( p_mme->x, p_mme->y );
-				control * p_ctl = find_first_by_point( xy );
+				ControlBaseT * p_ctl = find_first_by_point( xy );
 				if ( p_ctl ) {
 					if ( p_ctl != m_hover ) {
 
@@ -139,6 +151,10 @@ public:
 				}
 			} break;
 		}
+	}
+
+	void set_scale( const BLPoint & scale ) {
+		m_scale = scale;
 	}
 
 	const BLImage & image() const { return m_image; }
@@ -186,7 +202,6 @@ public:
 			std::ptrdiff_t line_len = p_line_end - p_line_begin;
 
 			fillUtf8Text( pen, font, p_line_begin, line_len );
-
 #if 1
 			strokeUtf8Text( pen, font, p_line_begin, line_len );
 #endif
@@ -204,7 +219,11 @@ public:
 	void draw() {
 		BLContext::begin( m_image );
 
-		for ( control * p_ctl : m_controls ) {
+		// BLResult BLContext::save()
+		// BLResult BLContext::restore()
+		BLContext::scale( m_scale.x, m_scale.y );
+
+		for ( ControlBaseT * p_ctl : m_controls ) {
 			if ( p_ctl->is_visible() ) {
 				p_ctl->draw();
 			}

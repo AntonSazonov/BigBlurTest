@@ -47,8 +47,7 @@ namespace stb {
 				if ( p_pixels ) {
 					stbi_image_free( p_pixels );
 				}
-			}
-		} );
+			} } );
 }
 
 } // namespace stb

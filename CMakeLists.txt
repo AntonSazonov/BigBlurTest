@@ -7,7 +7,9 @@ if( CCACHE_PROGRAM )
 	set( CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE} )
 endif()
 
-project( main CXX )
+set( BBT_PROJECT_NAME "BigBlurTest" )
+
+project( ${BBT_PROJECT_NAME} CXX )
 
 set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
@@ -18,8 +20,8 @@ add_subdirectory( src/blend2d )
 
 find_package( SDL2 REQUIRED )
 
-add_executable( main
-	main.cpp
+add_executable( ${BBT_PROJECT_NAME}
+	BigBlurTest.cpp
 
 	src/sdl_window_rgba.hpp
 	src/stb/stb_image.h
@@ -61,7 +63,7 @@ add_executable( main
 
 	)
 
-target_precompile_headers( main PUBLIC
+target_precompile_headers( ${BBT_PROJECT_NAME} PUBLIC
 	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_color_rgba.h$<ANGLE-R>>"
 	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_blur.h$<ANGLE-R>>"
 	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_array.h$<ANGLE-R>>"
@@ -72,23 +74,23 @@ target_precompile_headers( main PUBLIC
 set( CMAKE_CXX_FLAGS_DEBUG "-O1 ${CMAKE_CXX_FLAGS_DEBUG}" )
 
 if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
-	#target_compile_options( main PRIVATE -march=native -Ofast -ffast-math -funroll-loops -Wall -fno-exceptions -fno-rtti ) # -msse2 -Wextra -Wpedantic
-	target_compile_options( main PRIVATE -march=native -Wall -fno-exceptions -fno-rtti )
-	target_link_options   ( main PRIVATE -mconsole -s )
+	#target_compile_options( ${BBT_PROJECT_NAME} PRIVATE -march=native -Ofast -ffast-math -funroll-loops -Wall -fno-exceptions -fno-rtti ) # -msse2 -Wextra -Wpedantic
+	target_compile_options( ${BBT_PROJECT_NAME} PRIVATE -march=native -Wall -fno-exceptions -fno-rtti )
+	target_link_options   ( ${BBT_PROJECT_NAME} PRIVATE -mconsole -s )
 
 elseif( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
-	target_compile_options( main PRIVATE -march=native -Wall -fno-exceptions -fno-rtti -Wno-class-memaccess )
-	target_link_options   ( main PRIVATE -mconsole -s )
+	target_compile_options( ${BBT_PROJECT_NAME} PRIVATE -march=native -Wall -fno-exceptions -fno-rtti -Wno-class-memaccess )
+	target_link_options   ( ${BBT_PROJECT_NAME} PRIVATE -mconsole -s )
 
 elseif( CMAKE_CXX_COMPILER_ID STREQUAL "Intel" )
 	# ...
 
 elseif( CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" )
-	target_compile_options( main PRIVATE /W4 )
-	target_link_options   ( main PRIVATE /subsystem:console )
+	target_compile_options( ${BBT_PROJECT_NAME} PRIVATE /W4 )
+	target_link_options   ( ${BBT_PROJECT_NAME} PRIVATE /subsystem:console )
 endif()
 
-get_target_property( COMPILE_OPTS main COMPILE_OPTIONS )
+get_target_property( COMPILE_OPTS ${BBT_PROJECT_NAME} COMPILE_OPTIONS )
 
 if( CMAKE_BUILD_TYPE STREQUAL "Debug" )
 	set( COMPILE_OPTS "${CMAKE_CXX_FLAGS_DEBUG} ${COMPILE_OPTS}" )
@@ -107,8 +109,8 @@ message( STATUS " -------------------------------------------" )
 set( SAN_CMAKE_CONFIG_FILE "src/san_cmake_config.hpp" )
 configure_file( ${CMAKE_SOURCE_DIR}/${SAN_CMAKE_CONFIG_FILE}.in ${CMAKE_SOURCE_DIR}/${SAN_CMAKE_CONFIG_FILE} )
 
-target_include_directories( main PRIVATE ${CMAKE_SOURCE_DIR} )
-target_include_directories( main PRIVATE ${CMAKE_SOURCE_DIR}/src )
-target_link_libraries     ( main PRIVATE SDL2::SDL2 blend2d::blend2d )
-set_target_properties     ( main PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR} )
-set_target_properties     ( main PROPERTIES OUTPUT_NAME "${CMAKE_PROJECT_NAME}-${CMAKE_CXX_COMPILER_ID}-${CMAKE_BUILD_TYPE}" )
+target_include_directories( ${BBT_PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR} )
+target_include_directories( ${BBT_PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src )
+target_link_libraries     ( ${BBT_PROJECT_NAME} PRIVATE SDL2::SDL2 blend2d::blend2d )
+set_target_properties     ( ${BBT_PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR} )
+set_target_properties     ( ${BBT_PROJECT_NAME} PROPERTIES OUTPUT_NAME "${CMAKE_PROJECT_NAME}-${CMAKE_CXX_COMPILER_ID}-${CMAKE_BUILD_TYPE}" )

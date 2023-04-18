@@ -42,7 +42,7 @@ Thus, 8 iterations / 3 threads = 3 threads with 2 iterations + 2 remained iterat
 
  This approach has two disadvantages:
   1. Non-uniform range distribution
-  2. The last thread have biggest block size and begins its execution after all previous threads already has started. This is sad.
+  2. The last thread have biggest block size and begins its execution after all previous threads already has started
 
 ### New algorithm (remainder is distributed over first threads):
  * Thread #1: [0;3)  - size 3

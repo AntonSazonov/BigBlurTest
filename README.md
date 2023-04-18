@@ -6,7 +6,7 @@ Tested algorithms and implementations:
  * **Stack Blur** <sub>(Anti-Grain Geometry 2.5 by Maxim Shemanarev)</sub>
  * **Recursive Blur** <sub>(Anti-Grain Geometry 2.5 by Maxim Shemanarev)</sub>
  * **My unoptimized implementation of Stack Blur**
- * **My optimized implementations of Stack Blur using SSE2, SSSE3, SSE4.1 and multithreading**
+ * **My optimized implementations of Stack Blur using SSE2, SSSE3, SSE4.1**
 
 *Note: AGG versions was slightly modified to be able to use them with multiple threads.*
 

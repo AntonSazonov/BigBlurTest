@@ -33,7 +33,7 @@ Note, that part of time is spended to SDL's event handling, blitting etc. So act
 for ( int i = 0; i < 8; i++ ) ...
 ```
 And we want to break him into 3 threads.  
-Thus, 8 iterations / 3 threads = 2 blocks, remainder = 2.  
+Thus, 8 iterations / 3 threads = 2, remainder = 2.  
 
 **Old algorithm** (remainder is added to last thread):
  * Thread #1: [0;2)  - size 2 

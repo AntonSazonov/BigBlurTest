@@ -26,7 +26,7 @@ Clang do much better optimizations with same flags than GCC. Both tested are fro
 The fastest implementation I could write is about 1.6ms for a 1280x720 32bpp frame on an AMD Ryzen 7 2700 with 16 threads.  
 Note, that part of time is spended to SDL's event handling, blitting etc. So actual speed of some implementations (especially multithreaded) is significantly higher, and, thats why your CPU load shows you 50-60% load with using all cores - SDL event loop runs in one thread.
 <br/><br/>
-## Parallel 'for' loop thread distribution
+## Parallel 'for' loop range distribution
 
  For example, we have loop:
 ```C++

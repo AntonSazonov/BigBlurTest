@@ -54,6 +54,7 @@ TODO:
  * Recursive Blur SIMD version
  * Gaussian Blur
  * Get rid of SDL2?
+ * Run tests in separate thread
 <br/><br/>
 
 Example on Youtube (need to be updated):

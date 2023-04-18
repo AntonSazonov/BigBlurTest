@@ -26,14 +26,14 @@ Clang do much better optimizations with same flags than GCC. Both tested are fro
 The fastest implementation I could write is about 1.6ms for a 1280x720 32bpp frame on an AMD Ryzen 7 2700 with 16 threads.  
 Note, that part of time is spended to SDL's event handling, blitting etc. So actual speed of some implementations (especially multithreaded) is significantly higher, and, thats why your CPU load shows you 50-60% load with using all cores - SDL event loop runs in one thread.
 <br/><br/>
-## Parallel 'for' loop thread distribution
+## Parallel 'for' loop range distribution
 
- For example, we have loop:
+ Suppose, we have loop:
 ```C++
 for ( int i = 0; i < 8; i++ ) ...
 ```
 And we want to break him into 3 threads.  
-Thus, 8 iterations / 3 threads = 2 blocks, remainder = 2.  
+Thus, 8 iterations / 3 threads = 3 threads with 2 iterations + 2 remained iterations.  
 
 **Old algorithm** (remainder is added to last thread):
  * Thread #1: [0;2)  - size 2 
@@ -41,7 +41,7 @@ Thus, 8 iterations / 3 threads = 2 blocks, remainder = 2.
  * Thread #3: [4;8)  - size 4
 
  This approach has two disadvantages:
-  1. Non-uniform distribution
+  1. Non-uniform range distribution
   2. Last thread have biggest block size and begins after all previous threads
 
  **New algorithm** (remainder is distributed over first threads):
@@ -54,6 +54,7 @@ TODO:
  * Recursive Blur SIMD version
  * Gaussian Blur
  * Get rid of SDL2?
+ * Run tests in separate thread
 <br/><br/>
 
 Example on Youtube (need to be updated):

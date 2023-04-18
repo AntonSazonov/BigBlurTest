@@ -92,34 +92,42 @@ public:
 	}
 
 	template <typename F>
-	void run( int a, int b, F && f, int override_num_threads = 0 ) {
-		if ( a >= b ) return;
+	void run( int beg, int end, F && f, int override_num_threads = 0 ) {
+		if ( beg >= end ) return;
 
-		int num_blocks = !override_num_threads ? m_num_threads : override_num_threads;
-		int total_size = b - a;
-		int block_size = total_size / num_blocks;
-		if ( !block_size ) {
-			block_size = 1;
-			num_blocks = total_size > 1 ? total_size : 1;
-		}
+		int n_threads = override_num_threads > 0 ? override_num_threads : m_num_threads;
 
-		for ( int i = 0; i < num_blocks; ++i ) {
-			{
-				const std::scoped_lock tasks_lock( m_tasks_mutex );
-				m_tasks.push(
-					std::bind(
-						std::forward<F>( f ),
-						i * block_size + a,
-						(i == num_blocks - 1) ? b : ((i + 1) * block_size + a) ) );
+		int total_size	= end - beg;
+		int block_size	= total_size / n_threads;
+		int rem			= total_size % n_threads;
+
+		while ( n_threads-- > 0 ) {
+
+			int curr_size = rem > 0 ? block_size + 1 : block_size;
+			if ( !curr_size ) {
+				assert( n_threads == 0 );
+#ifndef NDEBUG
+				fprintf( stderr, "%s: zero size block (n_threads = %d). Thread count > loop size?\n", __PRETTY_FUNCTION__, n_threads );
+#endif
+				break;
 			}
+
+			{ // Push task...
+				const std::scoped_lock tasks_lock( m_tasks_mutex );
+				m_tasks.push( std::bind( std::forward<F>( f ), beg, beg + curr_size ) );
+			}
+
+			beg += curr_size;
+			rem--;
+
 			++m_tasks_total;
 			m_task_available_cv.notify_one();
 		}
 	}
 
 	template <typename F>
-	void run_and_wait( int a, int b, F && f, int override_num_threads = 0 ) {
-		run( a, b, std::forward<F>( f ), override_num_threads );
+	void run_and_wait( int beg, int end, F && f, int override_num_threads = 0 ) {
+		run( beg, end, std::forward<F>( f ), override_num_threads );
 		wait();
 	}
 }; // class parallel_for

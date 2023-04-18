@@ -28,7 +28,7 @@ Note, that part of time is spended to SDL's event handling, blitting etc. So act
 <br/><br/>
 ## Parallel 'for' loop range distribution
 
- For example, we have loop:
+ Suppose, we have loop:
 ```C++
 for ( int i = 0; i < 8; i++ ) ...
 ```

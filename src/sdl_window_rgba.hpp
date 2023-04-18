@@ -77,12 +77,16 @@ public:
 	}
 
 	// Blit 'p_src' to window surface...
-	bool blit( SDL_Surface * p_src ) {
+	bool blit( SDL_Surface * p_src ) const {
 		if ( SDL_BlitSurface( p_src, nullptr, m_surface, nullptr ) ) {
 			SDL_LogError( SDL_LOG_CATEGORY_APPLICATION, "SDL_BlitSurface(): %s", SDL_GetError() );
 			return false;
 		}
 		return true;
+	}
+
+	bool blit( std::shared_ptr <SDL_Surface> & p_src ) const {
+		return blit( p_src.get() );
 	}
 
 	static bool blit( SDL_Surface * p_src, SDL_Surface * p_dst ) {
@@ -110,6 +114,14 @@ public:
 			SDL_LogError( SDL_LOG_CATEGORY_APPLICATION, "Couldn't create surface: %s", SDL_GetError() );
 		}
 		if ( p ) blit( m_surface, p ); // Copy content
+		return std::shared_ptr<SDL_Surface>( p, []( SDL_Surface * p ) { SDL_FreeSurface( p ); } );
+	}
+
+	static std::shared_ptr <SDL_Surface> create_surface( int w, int h, int depth ) {
+		SDL_Surface * p = SDL_CreateRGBSurfaceWithFormat( 0/*unused*/, w, h, depth, SDL_PIXELFORMAT_RGB888 );
+		if ( !p ) {
+			SDL_LogError( SDL_LOG_CATEGORY_APPLICATION, "Couldn't create surface: %s", SDL_GetError() );
+		}
 		return std::shared_ptr<SDL_Surface>( p, []( SDL_Surface * p ) { SDL_FreeSurface( p ); } );
 	}
 

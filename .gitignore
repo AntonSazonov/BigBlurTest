@@ -5,6 +5,8 @@ test*
 x
 y
 z
+Debug
+Release
 deprecated
 *.pdf
 *.log

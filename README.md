@@ -8,7 +8,7 @@ Tested algorithms and implementations:
  * **My unoptimized implementation of Stack Blur**
  * **My optimized implementations of Stack Blur using SSE2, SSSE3, SSE4.1**
 
-*Note: AGG versions was slightly modified to be able to use them with multiple threads.*
+*Note: AGG versions was slightly modified to be able to use them with multiple threads and to suppress some compile warnings.*
 
 The Stack Blur algorithm was invented by Mario Klingemann.  
 mario@quasimondo.com  

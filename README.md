@@ -8,7 +8,7 @@ Tested algorithms and implementations:
  * **My unoptimized implementation of Stack Blur**
  * **My optimized implementations of Stack Blur using SSE2, SSSE3, SSE4.1**
 
-*Note: AGG versions was slightly modified to be able to use them with multiple threads.*
+*Note: AGG versions was slightly modified to be able to use them with multiple threads and to suppress some compile warnings.*
 
 The Stack Blur algorithm was invented by Mario Klingemann.  
 mario@quasimondo.com  
@@ -17,9 +17,9 @@ https://medium.com/@quasimondo
 AGG - Anti-Grain Geometry - a library that was written by Maxim Shemanarev.
 
 Do not use SIMD versions with disabled compiler optimizations. They'll be too slow.  
-Use at least '-O1' optimization level (GCC and Clang option).  
+Use at least '-O1' optimization level (GCC and Clang).  
 
-All tested versions use 32-bit (8 bits per component, order of components is not impotant) pixel format.
+All tested versions use 32-bit (8 bits per component, order of components is not important) pixel format.
 
 Clang do much better optimizations with same flags than GCC. Both tested are from MSYS2/MinGW64 toolchain.  
 

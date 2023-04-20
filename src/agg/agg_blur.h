@@ -114,19 +114,19 @@ namespace agg
 
         //--------------------------------------------------------------------
 		template <typename Img, typename ParallelFor>
-		void blur_x( Img & img, ParallelFor & parallel_for, unsigned radius, int override_num_threads )
+		void blur_x( Img & img, ParallelFor & parallel_for, int radius, int override_num_threads )
         {
             if(radius < 1) return;
 
-            unsigned w   = img.width();
-            unsigned h   = img.height();
-            unsigned wm  = w - 1;
-            unsigned div = radius * 2 + 1;
+            int w   = img.width();
+            int h   = img.height();
+            int wm  = w - 1;
+            int div = radius * 2 + 1;
 
-            unsigned div_sum = (radius + 1) * (radius + 1);
-            unsigned mul_sum = 0;
-            unsigned shr_sum = 0;
-            unsigned max_val = color_type::base_mask;
+            int div_sum = (radius + 1) * (radius + 1);
+            int16u mul_sum = 0;
+            int8u  shr_sum = 0;
+            int max_val = color_type::base_mask;
 
             if(max_val <= 255 && radius < 255)
             {
@@ -137,9 +137,9 @@ namespace agg
 			// parallelize...
 			parallel_for.run_and_wait( 0, h, [&]( int pf_begin, int pf_end ) {
 
-            unsigned xp;
-            unsigned stack_ptr;
-            unsigned stack_start;
+            int xp;
+            int stack_ptr;
+            int stack_start;
 
             color_type      pix;
             color_type*     stack_pix;
@@ -212,7 +212,7 @@ namespace agg
 
         //--------------------------------------------------------------------
 		template <typename Img, typename ParallelFor>
-		void blur( Img & img, ParallelFor & parallel_for, unsigned radius, int override_num_threads )
+		void blur( Img & img, ParallelFor & parallel_for, int radius, int override_num_threads )
         {
             blur_x(img, parallel_for, radius, override_num_threads );
             pixfmt_transposer<Img> img2(img);
@@ -265,7 +265,7 @@ namespace agg
         }
 
         template<class ArgT> 
-        AGG_INLINE void calc_pix(ArgT& v, unsigned mul, unsigned shr)
+        AGG_INLINE void calc_pix(ArgT& v, int16u mul, int8u shr)
         {
             typedef typename ArgT::value_type value_type;
             v.r = value_type((r * mul) >> shr);
@@ -292,26 +292,26 @@ namespace agg
             A = order_type::A 
         };
 
-        unsigned w   = img.width();
-        unsigned h   = img.height();
-        unsigned wm  = w - 1;
-        unsigned hm  = h - 1;
+        int w   = img.width();
+        int h   = img.height();
+        int wm  = w - 1;
+        int hm  = h - 1;
 
         if ( radius > 254 ) radius = 254;
 
         int stride = img.stride();
-        unsigned div = radius * 2 + 1;
+        int div = radius * 2 + 1;
 
-        unsigned mul_sum = stack_blur_tables<int>::g_stack_blur8_mul[radius];
-        unsigned shr_sum = stack_blur_tables<int>::g_stack_blur8_shr[radius];
+        int16u mul_sum = stack_blur_tables<int>::g_stack_blur8_mul[radius];
+        int8u  shr_sum = stack_blur_tables<int>::g_stack_blur8_shr[radius];
 
         {
 			// parallelize...
 			parallel_for.run_and_wait( 0, h, [&]( int pf_begin, int pf_end ) {
 
-            unsigned xp, yp;
-            unsigned stack_ptr;
-            unsigned stack_start;
+            int xp;
+            int stack_ptr;
+            int stack_start;
 
             const int8u* src_pix_ptr;
                   int8u* dst_pix_ptr;
@@ -320,18 +320,18 @@ namespace agg
             pod_vector<color_type> stack;
             stack.allocate(div);
 
-            unsigned sum_r;
-            unsigned sum_g;
-            unsigned sum_b;
-            unsigned sum_a;
-            unsigned sum_in_r;
-            unsigned sum_in_g;
-            unsigned sum_in_b;
-            unsigned sum_in_a;
-            unsigned sum_out_r;
-            unsigned sum_out_g;
-            unsigned sum_out_b;
-            unsigned sum_out_a;
+            int sum_r;
+            int sum_g;
+            int sum_b;
+            int sum_a;
+            int sum_in_r;
+            int sum_in_g;
+            int sum_in_b;
+            int sum_in_a;
+            int sum_out_r;
+            int sum_out_g;
+            int sum_out_b;
+            int sum_out_a;
 
             for( int y = pf_begin; y < pf_end; y++)
             {
@@ -452,9 +452,9 @@ namespace agg
 			// parallelize...
 			parallel_for.run_and_wait( 0, w, [&]( int pf_begin, int pf_end ) {
 
-            unsigned xp, yp;
-            unsigned stack_ptr;
-            unsigned stack_start;
+            int yp;
+            int stack_ptr;
+            int stack_start;
 
             const int8u* src_pix_ptr;
                   int8u* dst_pix_ptr;
@@ -463,18 +463,18 @@ namespace agg
             pod_vector<color_type> stack;
             stack.allocate(div);
 
-            unsigned sum_r;
-            unsigned sum_g;
-            unsigned sum_b;
-            unsigned sum_a;
-            unsigned sum_in_r;
-            unsigned sum_in_g;
-            unsigned sum_in_b;
-            unsigned sum_in_a;
-            unsigned sum_out_r;
-            unsigned sum_out_g;
-            unsigned sum_out_b;
-            unsigned sum_out_a;
+            int sum_r;
+            int sum_g;
+            int sum_b;
+            int sum_a;
+            int sum_in_r;
+            int sum_in_g;
+            int sum_in_b;
+            int sum_in_a;
+            int sum_out_r;
+            int sum_out_g;
+            int sum_out_b;
+            int sum_out_a;
 
             for( int x = pf_begin; x < pf_end; x++)
             {

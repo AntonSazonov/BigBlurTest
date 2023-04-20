@@ -6,7 +6,7 @@
 
 namespace san::blur::gaussian {
 
-template <size_t MaxRadius, typename ValueT = float>
+template <int MaxRadius, typename ValueT = float>
 class kernel {
 	static_assert( std::is_floating_point_v<ValueT> );
 
@@ -63,7 +63,7 @@ class naive {
 
 		// That's not stack from Stack Blur, that's memory allocated in stack.
 		int			len = end - beg;
-		uint32_t *	p_stack = (uint32_t *)__builtin_alloca_with_align( sizeof( uint32_t ) * len, 32 );
+		uint32_t *	p_stack = (uint32_t *)SAN_STACK_ALLOC( sizeof( uint32_t ) * len );
 		uint32_t *	p_dst = p_stack;
 
 		for ( int coord = beg; coord < end; coord++ ) {
@@ -104,7 +104,7 @@ public:
 
 	template <typename ImageViewT, typename ParallelFor>
 	void blur( ImageViewT & image, ParallelFor & parallel_for, int override_num_threads ) {
-		assert( image.bpp() == 4 );
+		assert( image.components() == 4 );
 
 		int radius = m_kernel.radius();
 

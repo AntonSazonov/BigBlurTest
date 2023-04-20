@@ -36,7 +36,7 @@ public:
 		m_rect.h += m_text_size.h / 2;
 	}
 
-	void on_mouse_button( const BLPoint & xy, mouse_button_e button, bool is_pressed ) override {
+	void on_mouse_button( const BLPoint &, mouse_button_e button, bool is_pressed ) override {
 
 		// If: button is left && current state is up && previous state is down...
 		if ( button == mouse_button_e::left && !is_pressed && m_is_lbutton_down ) {
@@ -47,8 +47,8 @@ public:
 		//m_is_rbutton_down = is_pressed && button == mouse_button_e::right;
 	}
 
-	void on_mouse_enter( const BLPoint & xy ) override { m_is_hovered = true; }
-	void on_mouse_leave( const BLPoint & xy ) override { m_is_hovered = false; }
+	void on_mouse_enter( const BLPoint & ) override { m_is_hovered = true; }
+	void on_mouse_leave( const BLPoint & ) override { m_is_hovered = false; }
 
 	void draw() override {
 

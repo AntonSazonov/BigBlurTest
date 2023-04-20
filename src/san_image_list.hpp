@@ -7,8 +7,8 @@
 namespace san {
 
 class image_list {
-	std::list <std::shared_ptr <SDL_Surface>>	m_images; // Image list from ./pics
-	decltype(m_images)::const_iterator			m_image_curr;
+	std::list <std::shared_ptr <surface>>	m_images; // Image list from ./pics
+	decltype(m_images)::const_iterator		m_image_curr;
 
 public:
 	image_list( const std::string & path = "./pics/" ) {
@@ -17,7 +17,7 @@ public:
 		for ( auto & p : std::filesystem::recursive_directory_iterator( path ) ) {
 			if ( p.path().extension() == ".jpg" ) { // JPEGs only
 				std::printf( "Loading '%s'...\n", p.path().string().c_str() );
-				std::shared_ptr <SDL_Surface> image = stb::load( p.path().string().c_str() );
+				std::shared_ptr <surface> image = load_image( p.path().string().c_str() );
 				if ( image ) {
 					m_images.push_back( image );
 				}
@@ -32,7 +32,7 @@ public:
 
 	explicit operator bool () const { return !m_images.empty(); }
 
-	std::shared_ptr <SDL_Surface> current_image() const { return *m_image_curr; }
+	std::shared_ptr <surface> current_image() const { return *m_image_curr; }
 
 	void go_prev() {
 		if ( m_image_curr == m_images.cbegin() ) {

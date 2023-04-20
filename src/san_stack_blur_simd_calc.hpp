@@ -1,18 +1,21 @@
 #pragma once
 
+#include <emmintrin.h>
+#include <smmintrin.h>
+
 namespace san::stack_blur::simd::calculator {
 
 // https://github.com/vectorclass/version2/blob/master/instrset.h
-#if (defined (__GNUC__) || defined(__clang__)) && !defined (_MSC_VER)
+#if (defined( __GNUC__ ) || defined( __clang__ )) && !defined( _MSC_VER )
 static inline uint32_t bit_scan_reverse( uint32_t a ) {
 	uint32_t r;
 	__asm( "bsrl %1, %0" : "=r"(r) : "r"(a) : );
 	return r;
 }
 #else
-static inline uint32_t bit_scan_reverse( uint32_t a ) {
-	uint32_t r;
-	_BitScanReverse( &r, a );
+static inline uint32_t bit_scan_reverse( unsigned long a ) {
+	unsigned long r;
+	_BitScanReverse( (unsigned long *)&r, a );
 	return r;
 }
 #endif // (defined (__GNUC__) || defined(__clang__)) && !defined (_MSC_VER)
@@ -38,8 +41,20 @@ public:
 }; // class divisor
 
 
-#if !defined( __SSE4_1__ ) && !defined( __SSE2__ )
- #error "At least SSE2 support must be enabled by compiler."
+#ifdef _MSC_VER
+
+ #ifndef _M_X64
+  #error "At least SSE2 support must be enabled by compiler."
+ #endif
+
+ #define __SSE2__
+
+#else
+
+ #if !defined( __SSE4_1__ ) && !defined( __SSE2__ )
+  #error "At least SSE2 support must be enabled by compiler."
+ #endif
+
 #endif
 
 // Common for all SSE variants

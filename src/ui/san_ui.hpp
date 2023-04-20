@@ -6,27 +6,18 @@
 
 namespace san::ui {
 
-enum class mouse_button_e : uint8_t {
-	left	= SDL_BUTTON_LEFT,
-	middle	= SDL_BUTTON_MIDDLE,
-	right	= SDL_BUTTON_RIGHT,
-	x1		= SDL_BUTTON_X1,
-	x2		= SDL_BUTTON_X2
-}; // enum class mouse_button_e
-
-
 template <typename ControlBaseT>
 class ui : public BLContext {
-	double					m_font_size;
-	BLPoint					m_scale			= { 1, 1 };
+	float						m_font_size;
+	BLPoint						m_scale			= { 1, 1 };
 
-	BLImage 				m_image;
+	BLImage 					m_image;
 
-	BLFontFace				m_face_sans;
-	BLFontFace				m_face_mono;
+	BLFontFace					m_face_sans;
+	BLFontFace					m_face_mono;
 
-	BLFont					m_font_sans;
-	BLFont					m_font_mono;
+	BLFont						m_font_sans;
+	BLFont						m_font_mono;
 
 	//console					m_console;
 	std::list <ControlBaseT *>	m_controls;
@@ -53,7 +44,7 @@ class ui : public BLContext {
 	}
 
 public:
-	ui( san::image_view & image, const std::string & path_fonts, double font_size = 32. ) : m_font_size( font_size ) {
+	ui( san::surface_view & image, const std::string & path_fonts, float font_size = 32. ) : m_font_size( font_size ) {
 		m_image.createFromData( image.width(), image.height(), BL_FORMAT_PRGB32 /*BL_FORMAT_XRGB32*/, image.ptr(), image.stride() );
 
 		load_font( m_face_sans, path_fonts + "/NotoSans-Regular.ttf" );
@@ -79,73 +70,48 @@ public:
 		return p_ctl;
 	}
 
-	void on_event( const SDL_Event * const p_event ) {
+	void on_mouse_motion( int x, int y ) {
+		BLPoint xy( x, y );
+		ControlBaseT * p_ctl = find_first_by_point( xy );
+		if ( p_ctl ) {
+			if ( p_ctl != m_hover ) {
 
-		switch ( p_event->type ) {
-
-			case SDL_MOUSEBUTTONDOWN: [[fallthrough]];
-			case SDL_MOUSEBUTTONUP: {
-
-				// https://wiki.libsdl.org/SDL2/SDL_MouseButtonEvent
-				// button - SDL_BUTTON_LEFT, SDL_BUTTON_MIDDLE, SDL_BUTTON_RIGHT, SDL_BUTTON_X1, SDL_BUTTON_X2
-				//  state - SDL_PRESSED or SDL_RELEASED
-				//   x, y
-				const SDL_MouseButtonEvent * const p_mbe = &p_event->button;
-
-				BLPoint xy( p_mbe->x, p_mbe->y );
-				ControlBaseT * p_ctl = find_first_by_point( xy );
-				if ( p_ctl ) {
-					m_focus = p_ctl; // Set focus on control
-
-					// Move control to top (end of list)...
-					//m_controls.erase( std::next( it ).base() );
-					//m_controls.push_back( p_ctl );
-
-					p_ctl->on_mouse_button( xy, mouse_button_e(p_mbe->button), p_mbe->state == SDL_PRESSED );
-					break;
-				}
-			} break;
-
-			case SDL_MOUSEMOTION: {
-
-				// https://wiki.libsdl.org/SDL2/SDL_MouseMotionEvent
-				const SDL_MouseMotionEvent * const p_mme = &p_event->motion;
-
-				BLPoint xy( p_mme->x, p_mme->y );
-				ControlBaseT * p_ctl = find_first_by_point( xy );
-				if ( p_ctl ) {
-					if ( p_ctl != m_hover ) {
-
-						// In case of overlapped controls...
-						if ( m_hover ) {
-							m_hover->on_mouse_leave( xy );
-						}
-
-						// Enter another control...
-						p_ctl->on_mouse_enter( xy );
-						m_hover = p_ctl;
-					}
-
-					// p_mbe->state - button state mask
-					// SDL_BUTTON_LMASK
-					// SDL_BUTTON_MMASK
-					// SDL_BUTTON_RMASK
-					// SDL_BUTTON_X1MASK
-					// SDL_BUTTON_X2MASK
-					p_ctl->on_mouse_motion( xy );
-					break;
-				}
-
-				// ...
-				// Pointer doesn't hits any control...
-				// ...
-
-				// Leave last hovered...
+				// In case of overlapped controls...
 				if ( m_hover ) {
 					m_hover->on_mouse_leave( xy );
-					m_hover = nullptr;
 				}
-			} break;
+
+				// Enter another control...
+				p_ctl->on_mouse_enter( xy );
+				m_hover = p_ctl;
+			}
+
+			p_ctl->on_mouse_motion( xy );
+			return;
+		}
+
+		// ...
+		// Pointer doesn't hits any control...
+		// ...
+
+		// Leave last hovered...
+		if ( m_hover ) {
+			m_hover->on_mouse_leave( xy );
+			m_hover = nullptr;
+		}
+	}
+
+	void on_mouse_button( int x, int y, san::mouse_button_e button, bool pressed ) {
+		BLPoint xy( x, y );
+		ControlBaseT * p_ctl = find_first_by_point( xy );
+		if ( p_ctl ) {
+			m_focus = p_ctl; // Set focus on control
+
+			// Move control to top (end of list)...
+			//m_controls.erase( std::next( it ).base() );
+			//m_controls.push_back( p_ctl );
+
+			p_ctl->on_mouse_button( xy, button, pressed );
 		}
 	}
 

@@ -11,14 +11,19 @@ set( BBT_PROJECT_NAME "BigBlurTest" )
 
 project( ${BBT_PROJECT_NAME} CXX )
 
+if( NOT CMAKE_SYSTEM_NAME STREQUAL "Windows" )
+	message( STATUS " Platform: ${CMAKE_SYSTEM_NAME}" )
+	message( FATAL_ERROR " Only Windows platform supported at the moment." )
+endif()
+
 set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 set( BLEND2D_STATIC TRUE )
 add_subdirectory( src/blend2d )
 
-
-find_package( SDL2 REQUIRED )
+set( BUILD_TESTING OFF )
+add_subdirectory( src/cpu_features )
 
 add_executable( ${BBT_PROJECT_NAME}
 	BigBlurTest.cpp
@@ -27,7 +32,6 @@ add_executable( ${BBT_PROJECT_NAME}
 	#src/stb/stb_image_resize.h
 	src/stb_impl.hpp
 	src/stb_impl.cpp
-	src/san_parallel_for.hpp
 
 	src/agg/agg_array.h
 	src/agg/agg_basics.h
@@ -36,19 +40,23 @@ add_executable( ${BBT_PROJECT_NAME}
 	src/agg/agg_config.h
 	src/agg/agg_pixfmt_transposer.h
 
-	src/san_window.hpp
+	src/platform/san_platform.hpp
+	src/platform/san_window_base.hpp
+	src/platform/san_window_win32.hpp
+
+	src/san_parallel_for.hpp
+	src/san_surface.hpp
+	src/san_image_list.hpp
 	src/san_agg_image_adaptor.hpp
 
-	src/san_ui.hpp
-	#src/san_ui_console.hpp
-	src/san_ui_ctrl.hpp
-	src/san_ui_ctrl_button.hpp
-	src/san_ui_ctrl_checkbox.hpp
-	src/san_ui_ctrl_text.hpp
-	src/san_ui_ctrl_link.hpp
-
-	src/san_image_view.hpp
-	src/san_image_list.hpp
+	src/ui/san_ui.hpp
+	#src/ui/san_ui_console.hpp
+	src/ui/san_ui_ctrl.hpp
+	src/ui/san_ui_ctrl_button.hpp
+	src/ui/san_ui_ctrl_checkbox.hpp
+	src/ui/san_ui_ctrl_text.hpp
+	src/ui/san_ui_ctrl_link.hpp
+	#src/ui/san_ui_ctrl_slider.hpp
 
 	src/san_blur_gaussian_naive.hpp
 
@@ -71,31 +79,26 @@ target_precompile_headers( ${BBT_PROJECT_NAME} PUBLIC
 	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_config.h$<ANGLE-R>>"
 	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_pixfmt_transposer.h$<ANGLE-R>>" )
 
-# I set DEBUG_OPT_LEVEL to "-O1" for testing by myself. But for "GitHub build action" this var. is empty and optimization level will be set to "-O0" for faster build process.
-if( NOT DEFINED DEBUG_OPT_LEVEL )
-	set( DEBUG_OPT_LEVEL -O0 )
-endif()
+# -march=native -Ofast -ffast-math -funroll-loops -fno-exceptions -fno-rtti ) # -Wextra -Wpedantic
+set( GNU_AND_CLANG_COMMON_COMP_OPTS -mavx2 -Wall -fno-exceptions -fno-rtti )
+set( GNU_AND_CLANG_COMMON_LINK_OPTS -mconsole -s -static )
 
-set( CMAKE_CXX_FLAGS_DEBUG "${DEBUG_OPT_LEVEL} ${CMAKE_CXX_FLAGS_DEBUG}" )
-
-# -march=native -Ofast -ffast-math -funroll-loops -Wall -fno-exceptions -fno-rtti ) # -msse2 -Wextra -Wpedantic
-set( GNU_AND_CLANG_COMMON_COMP_OPTS -march=native -Wall -fno-exceptions -fno-rtti )
-set( GNU_AND_CLANG_COMMON_LINK_OPTS -mconsole )
 if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
 	target_compile_options( ${BBT_PROJECT_NAME} PRIVATE ${GNU_AND_CLANG_COMMON_COMP_OPTS} )
 	target_link_options   ( ${BBT_PROJECT_NAME} PRIVATE ${GNU_AND_CLANG_COMMON_LINK_OPTS} )
 
 elseif( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
-	target_compile_options( ${BBT_PROJECT_NAME} PRIVATE ${GNU_AND_CLANG_COMMON_COMP_OPTS} -Wno-class-memaccess )
+	target_compile_options( ${BBT_PROJECT_NAME} PRIVATE ${GNU_AND_CLANG_COMMON_COMP_OPTS} ) # -Wno-class-memaccess
 	target_link_options   ( ${BBT_PROJECT_NAME} PRIVATE ${GNU_AND_CLANG_COMMON_LINK_OPTS} )
 
 elseif( CMAKE_CXX_COMPILER_ID STREQUAL "Intel" )
-	# ... what is Intel?
+	# not tested
 
 elseif( CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" )
-	target_compile_options( ${BBT_PROJECT_NAME} PRIVATE /W4 )
+	target_compile_options( ${BBT_PROJECT_NAME} PRIVATE /W3 /arch:AVX2 ) # /W4 /Wall /favor:blend
 	target_link_options   ( ${BBT_PROJECT_NAME} PRIVATE /subsystem:console )
 endif()
+
 
 get_target_property( COMPILE_OPTS ${BBT_PROJECT_NAME} COMPILE_OPTIONS )
 
@@ -118,6 +121,6 @@ configure_file( ${CMAKE_SOURCE_DIR}/${SAN_CMAKE_CONFIG_FILE}.in ${CMAKE_SOURCE_D
 
 target_include_directories( ${BBT_PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR} )
 target_include_directories( ${BBT_PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src )
-target_link_libraries     ( ${BBT_PROJECT_NAME} PRIVATE SDL2::SDL2 blend2d::blend2d )
+target_link_libraries     ( ${BBT_PROJECT_NAME} PRIVATE blend2d::blend2d cpu_features )
 set_target_properties     ( ${BBT_PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR} )
 set_target_properties     ( ${BBT_PROJECT_NAME} PROPERTIES OUTPUT_NAME "${CMAKE_PROJECT_NAME}-${CMAKE_CXX_COMPILER_ID}-${CMAKE_BUILD_TYPE}" )

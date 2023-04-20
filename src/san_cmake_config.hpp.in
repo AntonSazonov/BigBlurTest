@@ -14,10 +14,11 @@ namespace san::cmake {
 #elif defined( __GNUG__ )
 	return "GNU C++ " + std::to_string( __GNUC__ ) + '.' + std::to_string( __GNUC_MINOR__ ) + '.' + std::to_string( __GNUC_PATCHLEVEL__ );
 #else // other trash...
-	return CMAKE_CXX_COMPILER_ID;
+	return "${CMAKE_CXX_COMPILER_ID}";
 #endif
 }
 
+#if 0
 [[maybe_unused]] static std::string SIMD_supported() { return
 #ifdef __SSE__
 	" SSE"
@@ -60,5 +61,6 @@ namespace san::cmake {
 #endif
 	;
 }
+#endif
 
 } // namespace san::cmake

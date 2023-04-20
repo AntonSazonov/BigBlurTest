@@ -13,7 +13,7 @@ class blur_impl {
 	// advance - also '1' for rows or 'stride' for columns
 	void line_process( uint32_t * p_line, int len, int advance ) {
 
-		uint32_t * p_stack = (uint32_t *)__builtin_alloca_with_align( sizeof( uint32_t ) * m_div, 128 );
+		uint32_t * p_stack = (uint32_t *)SAN_STACK_ALLOC( sizeof( uint32_t ) * m_div );
 
 		// Accum. left part of stack (border color)...
 		uint32_t * p_stk = p_stack;
@@ -34,7 +34,7 @@ class blur_impl {
 			uint32_t * p_src = p_line;
 			int j = m_radius;
 			for ( int i = 1; i <= m_radius; i++, j-- ) {
-				if ( __builtin_expect( i < len, 1 ) ) p_src += advance;
+				if ( SAN_LIKELY( i < len ) ) p_src += advance;
 				uint32_t c = *p_src;
 				*p_stk++ = c;
 				CalcT v( c );
@@ -50,7 +50,7 @@ class blur_impl {
 		uint32_t * p_dst = p_line;
 
 		for ( ; len-- > 0; p_dst += advance ) {
-			*p_dst = sum * m_mul >> m_shr;
+			*p_dst = sum * int(m_mul) >> m_shr;
 			sum -= sum_out;
 
 			int stack_start = i_stack + m_div - m_radius;
@@ -59,7 +59,7 @@ class blur_impl {
 			sum_out -= p_stack[stack_start];
 
 			uint32_t c;
-			if ( __builtin_expect( p_src <= p_end, 1 ) ) {
+			if ( SAN_LIKELY( p_src <= p_end ) ) {
 				c = *p_src;
 				p_src += advance;
 			} else {

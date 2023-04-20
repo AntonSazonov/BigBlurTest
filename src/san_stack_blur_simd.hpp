@@ -5,7 +5,7 @@ namespace san::stack_blur::simd {
 template <typename SIMDCalcT>
 void line_process( ::san::line_adaptor & line, int beg, int end/*exclusive*/, int radius ) {
 	int div = radius * 2 + 1;
-	uint32_t * p_stack = (uint32_t *)__builtin_alloca_with_align( sizeof( uint32_t ) * div, 128 );
+	uint32_t * p_stack = (uint32_t *)SAN_STACK_ALLOC( sizeof( uint32_t ) * div );
 
 	// Precalculated divisor. Uses multiplication and right shift under the hood.
 	san::stack_blur::simd::calculator::divisor divisor( radius * (radius + 2) + 1 );
@@ -50,7 +50,7 @@ void line_process( ::san::line_adaptor & line, int beg, int end/*exclusive*/, in
 }
 
 template <typename SIMDCalcT, typename ParallelFor>
-void blur( san::image_view & image, ParallelFor & parallel_for, int radius, int override_num_threads ) {
+void blur( san::surface_view & image, ParallelFor & parallel_for, int radius, int override_num_threads ) {
 	if ( radius <= 0 ) return;
 
 	// Horizontal pass...

@@ -6,7 +6,7 @@ template <typename NaiveCalcT>
 void naive_line_process( ::san::line_adaptor & line, int beg, int end/*exclusive*/, int radius ) {
 	int den = radius * (radius + 2) + 1;
 	int div = radius * 2 + 1;
-	uint32_t * p_stack = (uint32_t *)__builtin_alloca_with_align( sizeof( uint32_t ) * div, 128 );
+	uint32_t * p_stack = (uint32_t *)SAN_STACK_ALLOC( sizeof( uint32_t ) * div );
 
 	// Fill initial stack...
 	NaiveCalcT sum, sum_in, sum_out;
@@ -48,7 +48,7 @@ void naive_line_process( ::san::line_adaptor & line, int beg, int end/*exclusive
 }
 
 template <typename NaiveCalcT, typename ParallelFor>
-void naive( san::image_view & image, ParallelFor & parallel_for, int radius, int override_num_threads ) {
+void naive( san::surface_view & image, ParallelFor & parallel_for, int radius, int override_num_threads ) {
 	if ( radius <= 0 ) return;
 
 	// Horizontal pass...

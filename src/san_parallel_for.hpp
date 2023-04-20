@@ -104,10 +104,10 @@ public:
 
 			int curr_size = rem > 0 ? block_size + 1 : block_size;
 			if ( !curr_size ) {
-				assert( n_threads == 0 );
 #ifndef NDEBUG
-				fprintf( stderr, "%s: zero size block (n_threads = %d). Thread count > loop size?\n", __PRETTY_FUNCTION__, n_threads );
+				fprintf( stderr, "%s: zero size block (n_threads = %d). Thread count > loop size?\n", __FUNCTION__, n_threads );
 #endif
+				assert( n_threads == 0 );
 				break;
 			}
 

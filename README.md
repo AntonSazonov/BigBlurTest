@@ -1,5 +1,4 @@
 # Blur Algorithms and Implementations Test in C++
-![CMake workflow](https://github.com/AntonSazonov/Blur_Test/actions/workflows/cmake.yml/badge.svg?branch=main)
 [![GitHub code size](https://img.shields.io/github/languages/code-size/AntonSazonov/Blur_Test?style=flat)](https://github.com/AntonSazonov/Blur_Test)
 
 Tested algorithms and implementations:

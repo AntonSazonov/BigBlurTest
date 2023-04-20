@@ -17,7 +17,7 @@ https://medium.com/@quasimondo
 AGG - Anti-Grain Geometry - a library that was written by Maxim Shemanarev.
 
 Do not use SIMD versions with disabled compiler optimizations. They'll be too slow.  
-Use at least '-O1' optimization level (GCC and Clang option).  
+Use at least '-O1' optimization level (GCC and Clang).  
 
 All tested versions use 32-bit (8 bits per component, order of components is not impotant) pixel format.
 

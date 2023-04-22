@@ -48,7 +48,7 @@ class app final : public san::window {
 public:
 	app( int width, int height )
 		: san::window( width, height, "Big Blur Test" )
-		, m_backbuffer_copy( san::window::copy_surface() )
+		, m_backbuffer_copy ( san::window::get_surface_copy() )
 		, m_surface_view_san( san::window::get_surface_view() )
 		, m_surface_view_agg( m_surface_view_san )
 		, m_ui( m_surface_view_san, "./fonts", 36 )
@@ -72,11 +72,8 @@ public:
 			int h = m_surface_view_san.height() - 5;
 			m_ui.add<san::ui::link>   ( BLPoint{ 10, double(h-=th) }, "https://github.com/AntonSazonov/BigBlurTest" );
 			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "Compile options: " + san::cmake::compile_opts() );
-			//m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, " SIMD supported: " + san::cmake::SIMD_supported() );
-
 			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, " SIMD supported: " + m_cpu_features.SIMD() );
 			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "            CPU: " + m_cpu_features.CPU() );
-
 			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "       Compiler: " + san::cmake::compiler_id() );
 			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "     Build type: " + san::cmake::build_type() );	
 			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "        Threads: " + std::to_string( m_parallel_for.num_threads() ) );
@@ -162,8 +159,8 @@ public:
 		m_backbuffer_copy->blit_to( m_surface_view_san );
 
 		if ( !m_is_benchmarking ) {
-#if 0
-			san::blur::gaussian::naive_test <256> gaussian;
+#if 1
+			san::blur::gaussian::naive_test <32> gaussian;
 			gaussian.blur( m_surface_view_san, m_parallel_for, m_mouse_x, 0/*max. threads*/ );
 #else
 			agg::recursive_blur	<agg::rgba8, agg::recursive_blur_calc_rgba<double>>	agg_recursive_blur;
@@ -205,7 +202,7 @@ public:
 				double sec = m_bench_time_func / 1e6;
 				double fps = m_bench_interations / sec;
 
-				std::printf( "%s --- done. %4d iterations in %5.2f sec., %6.2f FPS, ~%.1f ms./frame, %u MPixels/s.\n",
+				std::printf( "%s --- done. %4d iterations in %5.2f sec., %6.2f FPS, ~%.2f ms./frame, %u MPixels/s.\n",
 					m_bench_name.c_str(), m_bench_interations, sec, fps, double(m_bench_time_func / 1e3) / m_bench_interations, uint32_t(m_surface_view_san.width() * m_surface_view_san.height() * fps / 1e6) );
 
 				// Update window...

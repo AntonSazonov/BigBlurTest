@@ -267,7 +267,7 @@ public:
 #endif
 	}
 
-	std::shared_ptr <surface> copy_surface() const {
+	std::shared_ptr <surface> get_surface_copy() const {
 #ifdef USE_DIB
 		surface * p = new (std::nothrow) surface( m_dib_section.get_surface() );
 #else

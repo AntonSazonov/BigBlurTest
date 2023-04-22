@@ -13,6 +13,11 @@ class image_list {
 public:
 	image_list( const std::string & path = "./pics/" ) {
 
+		if ( !std::filesystem::exists( path ) ) {
+			fprintf( stderr, "The path '%s' doesn't exist.\n", path.c_str() );
+			return;
+		}
+
 		// Load all JPEGs from diretory...
 		for ( auto & p : std::filesystem::recursive_directory_iterator( path ) ) {
 			if ( p.path().extension() == ".jpg" ) { // JPEGs only

@@ -87,6 +87,8 @@ class window : public window_base {
 	bool				m_wait_events				= true;
 	bool				m_are_input_events_enabled	= true;
 
+	mutable bool		m_is_valid					= false;
+
 	static HINSTANCE	m_instance;
 	static ATOM			m_class_atom;
 	static int			m_ref_count;
@@ -218,6 +220,8 @@ public:
 
 		//GetWindowRect( m_wnd, &rcWnd );
 		//ClipCursor( &rcWnd );
+
+		m_is_valid = true;
 	}
 
 	virtual ~window() {
@@ -232,11 +236,15 @@ public:
 		}
 	}
 
-	explicit operator bool () const override { return !!m_wnd; }
+	explicit operator bool () const override { return m_is_valid; }
 
 	void show() const override { ShowWindow( m_wnd, SW_SHOW ); }
 	void hide() const override { ShowWindow( m_wnd, SW_HIDE ); }
-	void quit() const override { PostQuitMessage( 0 ); }
+
+	void quit() const override {
+		m_is_valid = false; // In case if derived constructor go fail...
+		PostQuitMessage( 0 );
+	}
 
 	// Enable/disable mouse and keyboard events.
 	void enable_input_events( bool state ) override {

@@ -11,7 +11,7 @@ class optimized_2 {
 
 	//  p_line - points to begin of row or column
 	// advance - also '1' for rows or 'stride' for columns
-	void do_line( uint32_t * p_line, int len, int advance ) {
+	void do_line( uint32_t * __restrict p_line, int len, int advance ) {
 
 		uint32_t * p_stack = (uint32_t *)SAN_STACK_ALLOC( sizeof( uint32_t ) * m_div );
 

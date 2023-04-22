@@ -21,9 +21,10 @@ public:
 	virtual void hide() const = 0;
 	virtual void quit() const = 0;
 
-	virtual void enable_input_events( bool ) = 0;
+	virtual void enable_input_events( bool ) = 0;	// Enable/disable mouse and keyboard input
 
-	virtual double get_time_ms() const = 0;
+	virtual double time_us() const = 0;
+	virtual double time_ms() const = 0;
 
 	virtual surface_view get_surface_view() = 0;
 	virtual void update() const = 0;

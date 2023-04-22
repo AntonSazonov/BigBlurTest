@@ -48,19 +48,19 @@ class app final : public san::window {
 public:
 	app( int width, int height )
 		: san::window( width, height, "Big Blur Test" )
-		, m_backbuffer_copy( copy_surface() )
-		, m_surface_view_san( get_surface_view() )
+		, m_backbuffer_copy( san::window::copy_surface() )
+		, m_surface_view_san( san::window::get_surface_view() )
 		, m_surface_view_agg( m_surface_view_san )
 		, m_ui( m_surface_view_san, "./fonts", 36 )
 		, m_impls( m_cpu_features, m_surface_view_san, m_surface_view_agg, m_parallel_for )
 	{
 		// Console
 		//san::ui::console & con = m_ui.console();
-		//con.add_command( "Exit", "Exit program.", [&](){ quit(); } );
+		//con.add_command( "Exit", "Exit program.", [&](){ san::window::quit(); } );
 
 		// At least one image must be loaded
 		if ( !m_image_list ) {
-			quit();
+			san::window::quit();
 			return;
 		}
 
@@ -108,10 +108,8 @@ public:
 	// At the moment, 'vk' is a Windows virtual key code.
 	// https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
 	void on_key( int vk, bool pressed ) override {
-		//printf( "vk = %3d, pressed = %d\n", vk, int(pressed) );
-
 		switch ( vk ) {
-			case VK_ESCAPE:	quit(); break;
+			case VK_ESCAPE:	san::window::quit(); break;
 
 			case VK_LEFT:	[[fallthrough]];
 			case VK_RIGHT:
@@ -127,10 +125,13 @@ public:
 		}
 	}
 
-	bool							m_is_benchmarking = false;
+	bool							m_is_benchmarking	= false;
+
 	double							m_bench_start;
 	int								m_bench_time_ms		= 10'000;
-	int								m_bench_raises;
+	double							m_bench_time_func;
+
+	int								m_bench_radius_raises;
 	int								m_bench_radius;
 	int								m_bench_interations;
 	std::string						m_bench_name;
@@ -141,17 +142,18 @@ public:
 
 		m_bench_name = pair.first;
 		m_bench_func = pair.second;
-		std::printf( "Benchmarking (%d ms.): %s \n", m_bench_time_ms, m_bench_name.c_str() );
+		std::printf( "\nBenchmarking (%d ms.): %s \n", m_bench_time_ms, m_bench_name.c_str() );
 
-		m_bench_raises		= 1;
-		m_bench_radius		= 0;
-		m_bench_interations	= 1;
+		// Disable input while bench.
+		san::window::enable_input_events( false );
+		san::window::set_wait_events( false );
 
-		enable_input_events( false );
-		set_wait_events( false );
-
-		m_is_benchmarking = true;
-		m_bench_start = get_time_ms();
+		m_is_benchmarking		= true;
+		m_bench_radius_raises	= 1;
+		m_bench_radius			= 0;
+		m_bench_interations		= 0;
+		m_bench_time_func		= 0;
+		m_bench_start			= san::window::time_ms();
 	}
 
 	void on_frame() override {
@@ -160,46 +162,54 @@ public:
 		m_backbuffer_copy->blit_to( m_surface_view_san );
 
 		if ( !m_is_benchmarking ) {
-//			san::blur::gaussian::naive_test <16> gaussian;
-//			gaussian.blur( m_surface_view_san, m_parallel_for, m_mouse_x, 0/*max. threads*/ );
+#if 0
+			san::blur::gaussian::naive_test <256> gaussian;
+			gaussian.blur( m_surface_view_san, m_parallel_for, m_mouse_x, 0/*max. threads*/ );
+#else
+			agg::recursive_blur	<agg::rgba8, agg::recursive_blur_calc_rgba<double>>	agg_recursive_blur;
+			agg_recursive_blur.blur( m_surface_view_agg, m_parallel_for, m_mouse_x, 0/*max. threads*/ );
+#endif
 		}
 
 		if ( m_is_benchmarking ) {
 
 			// Blur window's surface
-			m_bench_func( m_bench_radius, 0/* thread count; 0 means max. available */ );
+			{
+				double time_func_start = san::window::time_us();
+				m_bench_func( m_bench_radius, 0/* thread count; 0 means max. available */ );
+				m_bench_time_func += san::window::time_us() - time_func_start;
+			}
 
-			if ( m_bench_raises ) {
+			if ( m_bench_radius_raises ) {
 				if ( m_bench_radius++ >= 254 ) {
-					m_bench_raises ^= 1;
+					m_bench_radius_raises ^= 1;
 				}
 			} else {
 				if ( --m_bench_radius <=   0 ) {
-					m_bench_raises ^= 1;
-#if 0
-					m_image_list.go_next(); // Go next image...
-					blit_scaled( m_image_list.current_image().get(), m_backbuffer_copy.get() );
-#endif
+					m_bench_radius_raises ^= 1;
+
+					//m_image_list.go_next(); // Go next image...
+					//m_image_list.current_image()->blit_to( m_backbuffer_copy );
 				}
 			}
 
 			// Get time elapsed...
-			double ms = get_time_ms() - m_bench_start;
-			if ( ms >= m_bench_time_ms ) {
+			if ( san::window::time_ms() - m_bench_start >= m_bench_time_ms ) {
 
 				//m_mouse_x = m_bench_radius;
 				m_is_benchmarking = false;
-				set_wait_events( true );
-				enable_input_events( true );
 
-				double sec = ms / 1e3;
+				san::window::set_wait_events( true );
+				san::window::enable_input_events( true );
+
+				double sec = m_bench_time_func / 1e6;
 				double fps = m_bench_interations / sec;
 
-				std::printf( "%s --- done. %4d iterations in %5.2f sec., %6.2f FPS, ~%.1f ms/frame, %u MPixels/s.\n",
-					m_bench_name.c_str(), m_bench_interations, sec, fps, double(ms) / m_bench_interations, uint32_t(m_surface_view_san.width() * m_surface_view_san.height() * fps / 1e6) );
+				std::printf( "%s --- done. %4d iterations in %5.2f sec., %6.2f FPS, ~%.1f ms./frame, %u MPixels/s.\n",
+					m_bench_name.c_str(), m_bench_interations, sec, fps, double(m_bench_time_func / 1e3) / m_bench_interations, uint32_t(m_surface_view_san.width() * m_surface_view_san.height() * fps / 1e6) );
 
 				// Update window...
-				// ...
+				m_backbuffer_copy->blit_to( m_surface_view_san );
 			}
 			m_bench_interations++;
 		}

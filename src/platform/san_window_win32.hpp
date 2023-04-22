@@ -210,23 +210,25 @@ public:
 
 		m_hdc = GetDC( m_wnd );
 
+
+		// Screen work area dimentions
+		RECT scr_work_area;
+		SystemParametersInfo( SPI_GETWORKAREA, 0, (PVOID)&scr_work_area, 0 );
+		int scr_w = scr_work_area.right - scr_work_area.left;
+		int scr_h = scr_work_area.bottom - scr_work_area.top;
+
 		// Center window...
 		RECT rcWnd;
 		GetWindowRect( m_wnd, &rcWnd );
 		SetWindowPos( m_wnd, NULL,
-			GetSystemMetrics( SM_CXSCREEN ) / 2 - (rcWnd.right - rcWnd.left) / 2,
-			GetSystemMetrics( SM_CYSCREEN ) / 2 - (rcWnd.bottom - rcWnd.top) / 2,
+			scr_w / 2 - (rcWnd.right - rcWnd.left) / 2,
+			scr_h / 2 - (rcWnd.bottom - rcWnd.top) / 2,
 			0, 0, SWP_NOSIZE | SWP_NOZORDER );
-
-		//GetWindowRect( m_wnd, &rcWnd );
-		//ClipCursor( &rcWnd );
 
 		m_is_valid = true;
 	}
 
 	virtual ~window() {
-		//ClipCursor( NULL );
-
 		if ( m_hdc ) ReleaseDC( m_wnd, m_hdc );
 		if ( m_wnd ) DestroyWindow( m_wnd );
 		if ( m_ref_count > 0 ) --m_ref_count;

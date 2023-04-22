@@ -18,49 +18,4 @@ namespace san::cmake {
 #endif
 }
 
-#if 0
-[[maybe_unused]] static std::string SIMD_supported() { return
-#ifdef __SSE__
-	" SSE"
-#endif
-
-#ifdef __SSE2__
-	" SSE2"
-#endif
-
-#ifdef __SSE3__
-	" SSE3"
-#endif
-
-#ifdef __SSSE3__
-	" SSSE3"
-#endif
-
-#ifdef __SSE4_1__
-	" SSE4.1"
-#endif
-
-#ifdef __SSE4_2__
-	" SSE4.2"
-#endif
-
-#ifdef __SSE4A__
-	" SSE4A"
-#endif
-
-#ifdef __AVX__
-	" AVX"
-#endif
-
-#ifdef __AVX2__
-	" AVX2"
-#endif
-
-#ifdef __FMA__
-	" FMA"
-#endif
-	;
-}
-#endif
-
 } // namespace san::cmake

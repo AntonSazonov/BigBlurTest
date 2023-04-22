@@ -39,8 +39,8 @@ public:
 		if ( radius < 1 ) radius = 1; else
 		if ( radius > MaxRadius ) radius = MaxRadius;
 		m_radius  = radius;
-		m_radius2 = m_radius * 2;
-		m_sigma   = m_radius / m_sigma_coefficient;
+		m_radius2 = radius * 2;
+		m_sigma   = radius / m_sigma_coefficient;
 		calculate();
 	}
 
@@ -64,8 +64,9 @@ class naive {
 
 	void do_line( ::san::blur::line_adaptor & line, int beg, int end, int radius ) {
 
-		// That's not stack from Stack Blur, that's memory allocated in stack.
 		int			len = end - beg;
+
+		// That's not stack from Stack Blur, that's memory allocated in stack.
 		uint32_t *	p_stack = (uint32_t *)SAN_STACK_ALLOC( sizeof( uint32_t ) * len );
 		uint32_t *	p_dst = p_stack;
 
@@ -86,10 +87,10 @@ class naive {
 				sum_a += ((c >> 24) & 0xff) * weight;
 			}
 
-			uint32_t c = ((int(sum_a) & 0xff) << 24) |
-						 ((int(sum_b) & 0xff) << 16) |
-						 ((int(sum_g) & 0xff) <<  8) |
-						  (int(sum_r) & 0xff);
+			uint32_t c = ((uint32_t(sum_a) & 0xff) << 24) |
+						 ((uint32_t(sum_b) & 0xff) << 16) |
+						 ((uint32_t(sum_g) & 0xff) <<  8) |
+						  (uint32_t(sum_r) & 0xff);
 
 			*p_dst++ = c;
 		}

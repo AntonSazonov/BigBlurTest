@@ -58,18 +58,15 @@ add_executable( ${BBT_PROJECT_NAME}
 	src/ui/san_ui_ctrl_link.hpp
 	#src/ui/san_ui_ctrl_slider.hpp
 
+	src/san_blur_line_adaptor.hpp
 	src/san_blur_gaussian_naive.hpp
-
-	src/san_stack_blur_luts.hpp
-	src/san_stack_blur_naive.hpp
-	src/san_stack_blur_naive_calc.hpp
-
-	src/san_stack_blur_simd.hpp
-	src/san_stack_blur_simd_calc.hpp
-	src/san_stack_blur_simd_fastest.hpp
-	src/san_stack_blur_simd_fastest_2.hpp
-
-	)
+	src/san_blur_stack_luts.hpp
+	src/san_blur_stack_naive.hpp
+	src/san_blur_stack_naive_calc.hpp
+	src/san_blur_stack_simd_naive.hpp
+	src/san_blur_stack_simd_calc.hpp
+	src/san_blur_stack_simd_optimized_1.hpp
+	src/san_blur_stack_simd_optimized_2.hpp )
 
 target_precompile_headers( ${BBT_PROJECT_NAME} PUBLIC
 	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_color_rgba.h$<ANGLE-R>>"
@@ -81,7 +78,7 @@ target_precompile_headers( ${BBT_PROJECT_NAME} PUBLIC
 
 # -march=native -Ofast -ffast-math -funroll-loops -fno-exceptions -fno-rtti ) # -Wextra -Wpedantic
 set( GNU_AND_CLANG_COMMON_COMP_OPTS -mavx2 -Wall -fno-exceptions -fno-rtti )
-set( GNU_AND_CLANG_COMMON_LINK_OPTS -mconsole -s -static )
+set( GNU_AND_CLANG_COMMON_LINK_OPTS -mconsole -s ) # -static
 
 if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
 	target_compile_options( ${BBT_PROJECT_NAME} PRIVATE ${GNU_AND_CLANG_COMMON_COMP_OPTS} )

@@ -1,9 +1,9 @@
 #pragma once
 
-namespace san::stack_blur::simd::fastest {
+namespace san::blur::stack::simd {
 
 template <typename CalcT>
-class blur_impl {
+class optimized_1 {
 	int			m_radius;
 	int			m_div;
 	uint16_t	m_mul;
@@ -11,7 +11,7 @@ class blur_impl {
 
 	//  p_line - points to begin of row or column
 	// advance - also '1' for rows or 'stride' for columns
-	void line_process( uint32_t * p_line, int len, int advance ) {
+	void do_line( uint32_t * p_line, int len, int advance ) {
 
 		uint32_t * p_stack = (uint32_t *)SAN_STACK_ALLOC( sizeof( uint32_t ) * m_div );
 
@@ -81,28 +81,28 @@ class blur_impl {
 public:
 	template <typename ImageViewT, typename ParallelFor>
 	void blur( ImageViewT & image, ParallelFor & parallel_for, int radius, int override_num_threads ) {
-		if ( radius <= 0 ) return;
+		if ( radius < 1 ) return;
 		if ( radius > 254 ) radius = 254;
 
 		m_radius = radius;
 		m_div = radius * 2 + 1;
-		m_mul = ::san::stack_blur::lut_mul[radius];
-		m_shr = ::san::stack_blur::lut_shr[radius];
+		m_mul = ::san::blur::stack::lut_mul[radius];
+		m_shr = ::san::blur::stack::lut_shr[radius];
 
 		// Horizontal pass...
 		parallel_for.run_and_wait( 0, image.height(), [&]( int a, int b ) {
 			for ( int y = a; y < b; y++ ) {
-				line_process( (uint32_t *)image.row_ptr( y ), image.width(), 1 );
+				do_line( (uint32_t *)image.row_ptr( y ), image.width(), 1 );
 			}
 		}, override_num_threads );
 
 		// Vertical pass...
 		parallel_for.run_and_wait( 0, image.width(), [&]( int a, int b ) {
 			for ( int x = a; x < b; x++ ) {
-				line_process( (uint32_t *)image.col_ptr( x ), image.height(), image.stride() / 4 );
+				do_line( (uint32_t *)image.col_ptr( x ), image.height(), image.stride() / 4 );
 			}
 		}, override_num_threads );
 	}
-}; // class blur_impl
+}; // class optimized_1
 
-} // namespace san::stack_blur::simd::fastest
+} // namespace san::blur::stack::simd

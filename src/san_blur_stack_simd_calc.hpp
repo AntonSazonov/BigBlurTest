@@ -3,7 +3,7 @@
 #include <emmintrin.h>
 #include <smmintrin.h>
 
-namespace san::stack_blur::simd::calculator {
+namespace san::blur::stack::simd {
 
 // https://github.com/vectorclass/version2/blob/master/instrset.h
 #if (defined( __GNUC__ ) || defined( __clang__ )) && !defined( _MSC_VER )
@@ -148,4 +148,4 @@ public:
 	}
 }; // class sse128_u32_t
 
-} // namespace san::stack_blur::simd::calculator
+} // namespace san::blur::stack::simd

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace san {
+namespace san::blur {
 
 // Horizontal or vertical line adaptor
 class line_adaptor {
@@ -23,6 +23,6 @@ public:
 	void set_pix( int i, uint32_t value ) {
 		m_ptr[i * m_advance] = value;
 	}
-}; // struct line_adaptor
+}; // class line_adaptor
 
-} // namespace san
+} // namespace san::blur

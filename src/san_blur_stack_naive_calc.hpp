@@ -1,6 +1,6 @@
 #pragma once
 
-namespace san::stack_blur {
+namespace san::blur::stack {
 
 template <typename ValueT = int>
 class naive_calc {
@@ -85,4 +85,4 @@ public:
 #endif
 }; // struct naive_calc
 
-} // namespace san::stack_blur
+} // namespace san::blur::stack

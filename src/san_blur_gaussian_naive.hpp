@@ -34,8 +34,9 @@ public:
 	kernel( ValueT sigma_coefficient = 2.5 ) : m_sigma_coefficient( sigma_coefficient ) {}
 
 	void set_radius( int radius ) {
-		if ( radius < 1 ) radius = 1;
-		m_radius  = radius > MaxRadius ? MaxRadius : radius;
+		if ( radius < 1 ) radius = 1; else
+		if ( radius > MaxRadius ) radius = MaxRadius;
+		m_radius  = radius;
 		m_radius2 = m_radius * 2;
 		m_sigma   = m_radius / m_sigma_coefficient;
 		calculate();
@@ -59,7 +60,7 @@ class naive {
 	KernelT &	m_kernel;
 	using		value_type = typename KernelT::value_type;
 
-	void do_line( ::san::line_adaptor & line, int beg, int end, int radius ) {
+	void do_line( ::san::blur::line_adaptor & line, int beg, int end, int radius ) {
 
 		// That's not stack from Stack Blur, that's memory allocated in stack.
 		int			len = end - beg;
@@ -111,7 +112,7 @@ public:
 		// Horizontal pass...
 		parallel_for.run_and_wait( 0, image.height(), [&]( int beg, int end ) {
 			for ( int i = beg; i < end; i++ ) {
-				::san::line_adaptor line( (uint32_t *)image.row_ptr( i ), image.width(), 1/*advance*/ );
+				::san::blur::line_adaptor line( (uint32_t *)image.row_ptr( i ), image.width(), 1/*advance*/ );
 				do_line( line, 0, image.width(), radius );
 			}
 		}, override_num_threads );
@@ -119,7 +120,7 @@ public:
 		// Vertical pass...
 		parallel_for.run_and_wait( 0, image.width(), [&]( int beg, int end ) {
 			for ( int i = beg; i < end; i++ ) {
-				::san::line_adaptor line( (uint32_t *)image.col_ptr( i ), image.height(), image.stride() / 4/*advance*/ );
+				::san::blur::line_adaptor line( (uint32_t *)image.col_ptr( i ), image.height(), image.stride() / 4/*advance*/ );
 				do_line( line, 0, image.height(), radius );
 			}
 		}, override_num_threads );
@@ -138,6 +139,10 @@ public:
 
 	template <typename ImageViewT, typename ParallelFor>
 	void blur( ImageViewT & image, ParallelFor & parallel_for, int radius, int override_num_threads ) {
+
+		fprintf( stderr, "radius = %d, override_num_threads = %d\n", radius, override_num_threads );
+
+		if ( radius < 1 ) return;
 		m_kernel.set_radius( radius );
 		m_kernel.normalize();
 		m_filter.blur( image, parallel_for, override_num_threads );

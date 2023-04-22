@@ -46,8 +46,6 @@ public:
 
 	explicit operator bool () const { return m_data != nullptr; }
 
-	bool		is_managed()			const { return m_managed_outside; }
-
 	int			width()					const { return m_width; }
 	int			height()				const { return m_height; }
 	int			stride()				const { return m_stride; }

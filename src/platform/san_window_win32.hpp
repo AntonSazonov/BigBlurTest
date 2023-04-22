@@ -82,7 +82,8 @@ class window : public window_base {
 	BITMAPINFO			m_bi;
 #endif
 
-	HWND				m_handle;
+	HWND				m_wnd;
+	HDC					m_hdc;
 	bool				m_wait_events				= true;
 	bool				m_are_input_events_enabled	= true;
 
@@ -103,8 +104,6 @@ class window : public window_base {
 		   So we have p_this == nullptr before WM_CREATE. */
 		window * p_this = reinterpret_cast<window *>( GetWindowLongPtr( hWnd, GWLP_USERDATA ) );
 
-		LPARAM ret = -1;
-
 		if ( p_this ) {
 			switch ( uMsg ) {
 				case WM_MOUSEMOVE:		p_this->on_mouse_motion( LOWORD( lParam ), HIWORD( lParam ) ); break;
@@ -118,15 +117,11 @@ class window : public window_base {
 				case WM_PAINT: {
 					PAINTSTRUCT	ps;
 					BeginPaint( hWnd, &ps );
-#ifdef USE_DIB
-					BitBlt( ps.hdc, 0, 0, p_this->m_dib_section.get_width(), p_this->m_dib_section.get_height(), p_this->m_dib_section.get_hdc(), 0, 0, SRCCOPY );
-#else
-					SetDIBitsToDevice( ps.hdc, 0, 0, p_this->m_surface.width(), p_this->m_surface.height(), 0, 0, 0, p_this->m_surface.height(), p_this->m_surface.ptr(), (BITMAPINFO *)&p_this->m_bi, DIB_RGB_COLORS );
-#endif
+					p_this->update_surface( ps.hdc );
 					EndPaint( hWnd, &ps );
 				} break;
 
-				case WM_CLOSE: DestroyWindow( p_this->m_handle ); break;
+				case WM_CLOSE: DestroyWindow( p_this->m_wnd ); break;
 				case WM_DESTROY: p_this->quit(); break;
 			}
 		}
@@ -136,15 +131,10 @@ class window : public window_base {
 			--m_ref_count;
 
 			// Exit message loop if no more windows left
-			if ( m_ref_count <= 0 ) {
-				PostQuitMessage( 0 );
-			}
+			if ( m_ref_count <= 0 ) PostQuitMessage( 0 );
 		}
 
-		if ( ret == -1 ) {
-			ret = DefWindowProc( hWnd, uMsg, wParam, lParam );
-		}
-		return ret;
+		return DefWindowProc( hWnd, uMsg, wParam, lParam );
 	}
 
 	static void print_last_error( const char * p_title, int err = 0 ) {
@@ -155,7 +145,14 @@ class window : public window_base {
 		LocalFree( p_msg );
 	}
 
-	HDC		m_hdc;
+	void update_surface( HDC hdc ) const {
+#ifdef USE_DIB
+		BitBlt( m_hdc, 0, 0, m_dib_section.get_width(), m_dib_section.get_height(), m_dib_section.get_hdc(), 0, 0, SRCCOPY );
+#else
+		//SetDIBitsToDevice( m_hdc, 0, 0, m_dib_section.get_width(), m_dib_section.get_height(), 0, 0, 0, m_dib_section.get_height(), m_dib_section.get_ptr(), (BITMAPINFO *)&m_dib_section.get_bi(), DIB_RGB_COLORS );
+		SetDIBitsToDevice( m_hdc, 0, 0, m_surface.width(), m_surface.height(), 0, 0, 0, m_surface.height(), m_surface.ptr(), (BITMAPINFO *)&m_bi, DIB_RGB_COLORS );
+#endif
+	}
 
 public:
 	// width, height - client area dimentions
@@ -196,38 +193,38 @@ public:
 		}
 		++m_ref_count;
 
-		const DWORD style = /*WS_OVERLAPPED |*/ WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+		const DWORD style = WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
 
 		// Calculate client rect...
 		RECT rc = { 0, 0, width, height };
 		AdjustWindowRect( &rc, style, FALSE ); // WS_OVERLAPPED can't be used
 
-		m_handle = CreateWindow( reinterpret_cast<LPCTSTR>( m_class_atom ),
+		m_wnd = CreateWindow( reinterpret_cast<LPCTSTR>( m_class_atom ),
 			title, style, 0, 0, rc.right - rc.left, rc.bottom - rc.top, NULL, NULL, m_instance, this );
-		if ( !m_handle ) {
+		if ( !m_wnd ) {
 			print_last_error( "CreateWindowEx()" );
 			return;
 		}
 
-		m_hdc = GetDC( m_handle );
+		m_hdc = GetDC( m_wnd );
 
 		// Center window...
 		RECT rcWnd;
-		GetWindowRect( m_handle, &rcWnd );
-		SetWindowPos( m_handle, NULL,
+		GetWindowRect( m_wnd, &rcWnd );
+		SetWindowPos( m_wnd, NULL,
 			GetSystemMetrics( SM_CXSCREEN ) / 2 - (rcWnd.right - rcWnd.left) / 2,
 			GetSystemMetrics( SM_CYSCREEN ) / 2 - (rcWnd.bottom - rcWnd.top) / 2,
 			0, 0, SWP_NOSIZE | SWP_NOZORDER );
 
-		//GetWindowRect( m_handle, &rcWnd );
+		//GetWindowRect( m_wnd, &rcWnd );
 		//ClipCursor( &rcWnd );
 	}
 
 	virtual ~window() {
 		//ClipCursor( NULL );
 
-		if ( m_hdc ) ReleaseDC( m_handle, m_hdc );
-		if ( m_handle ) DestroyWindow( m_handle );
+		if ( m_hdc ) ReleaseDC( m_wnd, m_hdc );
+		if ( m_wnd ) DestroyWindow( m_wnd );
 		if ( m_ref_count > 0 ) --m_ref_count;
 		if ( m_class_atom && m_ref_count <= 0 ) {
 			UnregisterClass( reinterpret_cast<LPCTSTR>( m_class_atom ), m_instance );
@@ -235,10 +232,10 @@ public:
 		}
 	}
 
-	explicit operator bool () const override { return !!m_handle; }
+	explicit operator bool () const override { return !!m_wnd; }
 
-	void show() const override { ShowWindow( m_handle, SW_SHOW ); }
-	void hide() const override { ShowWindow( m_handle, SW_HIDE ); }
+	void show() const override { ShowWindow( m_wnd, SW_SHOW ); }
+	void hide() const override { ShowWindow( m_wnd, SW_HIDE ); }
 	void quit() const override { PostQuitMessage( 0 ); }
 
 	// Enable/disable mouse and keyboard events.
@@ -246,24 +243,20 @@ public:
 		m_are_input_events_enabled = state;
 	}
 
-	double get_time_ms() const override {
+	double time_us() const override {
+		LARGE_INTEGER counter;
+		QueryPerformanceCounter( &counter );
+		return counter.QuadPart * 1.e6 / m_frequency.QuadPart;
+	}
+
+	double time_ms() const override {
 		LARGE_INTEGER counter;
 		QueryPerformanceCounter( &counter );
 		return counter.QuadPart * 1.e3 / m_frequency.QuadPart;
 	}
 
 	void update() const override {
-#if 0
-		InvalidateRect( m_handle, nullptr, FALSE );
-		UpdateWindow( m_handle );
-#endif
-
-#ifdef USE_DIB
-		BitBlt( m_hdc, 0, 0, m_dib_section.get_width(), m_dib_section.get_height(), m_dib_section.get_hdc(), 0, 0, SRCCOPY );
-#else
-		//SetDIBitsToDevice( m_hdc, 0, 0, m_dib_section.get_width(), m_dib_section.get_height(), 0, 0, 0, m_dib_section.get_height(), m_dib_section.get_ptr(), (BITMAPINFO *)&m_dib_section.get_bi(), DIB_RGB_COLORS );
-		SetDIBitsToDevice( m_hdc, 0, 0, m_surface.width(), m_surface.height(), 0, 0, 0, m_surface.height(), m_surface.ptr(), (BITMAPINFO *)&m_bi, DIB_RGB_COLORS );
-#endif
+		update_surface( m_hdc );
 	}
 
 	surface_view get_surface_view() override {
@@ -283,29 +276,11 @@ public:
 		return std::shared_ptr<surface>( p, []( surface * p ) { delete p; } );
 	}
 
-	//virtual void on_mouse_motion( int, int ) {}
-	//virtual void on_mouse_button( int, int, mouse_button_e, bool ) {}
-	//virtual void on_key( int, bool ) {}
-	//virtual void on_frame() = 0;
-
 	//  true - wait events
 	// false - don't wait events
 	void set_wait_events( bool wait_events ) override {
 		m_wait_events = wait_events;
 	}
-
-#if 0
-	bool	m_process_events = true;
-
-	void set_process_events( bool process_events ) {
-		m_process_events = process_events;
-		if ( process_events ) {
-			SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_NORMAL );
-		} else {
-			SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_HIGHEST );
-		}
-	}
-#endif
 
 	void run() override {
 		if ( window::m_ref_count > 0 ) {

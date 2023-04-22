@@ -81,10 +81,12 @@ set( GNU_AND_CLANG_COMMON_COMP_OPTS -mavx2 -Wall -fno-exceptions -fno-rtti )
 set( GNU_AND_CLANG_COMMON_LINK_OPTS -mconsole -s ) # -static
 
 if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
+	set( CMAKE_CXX_FLAGS_DEBUG "-O1 ${CMAKE_CXX_FLAGS_DEBUG}" )
 	target_compile_options( ${BBT_PROJECT_NAME} PRIVATE ${GNU_AND_CLANG_COMMON_COMP_OPTS} )
 	target_link_options   ( ${BBT_PROJECT_NAME} PRIVATE ${GNU_AND_CLANG_COMMON_LINK_OPTS} )
 
 elseif( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
+	set( CMAKE_CXX_FLAGS_DEBUG "-O1 ${CMAKE_CXX_FLAGS_DEBUG}" )
 	target_compile_options( ${BBT_PROJECT_NAME} PRIVATE ${GNU_AND_CLANG_COMMON_COMP_OPTS} ) # -Wno-class-memaccess
 	target_link_options   ( ${BBT_PROJECT_NAME} PRIVATE ${GNU_AND_CLANG_COMMON_LINK_OPTS} )
 
@@ -92,6 +94,7 @@ elseif( CMAKE_CXX_COMPILER_ID STREQUAL "Intel" )
 	# not tested
 
 elseif( CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" )
+	set( CMAKE_CXX_FLAGS_DEBUG "/O1 ${CMAKE_CXX_FLAGS_DEBUG}" )
 	target_compile_options( ${BBT_PROJECT_NAME} PRIVATE /W3 /arch:AVX2 ) # /W4 /Wall /favor:blend
 	target_link_options   ( ${BBT_PROJECT_NAME} PRIVATE /subsystem:console )
 endif()

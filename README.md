@@ -22,7 +22,7 @@ All tested versions use 32-bit (8 bits per component, order of components is not
 
 Clang do much better optimizations with same flags than GCC. Both tested are from MSYS2/MinGW64 toolchain.  
 
-The fastest implementation I could write is about 1.6ms for a 1280x720 32bpp frame on an AMD Ryzen 7 2700 with 16 threads.  
+The fastest implementation I could write is about 0.7ms for a 1280x720 32bpp frame on an AMD Ryzen 7 2700 with SSE4.1 and 16 threads.  
 <br/><br/>
 ## Parallel 'for' loop range distribution
 

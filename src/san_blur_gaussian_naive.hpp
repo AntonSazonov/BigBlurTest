@@ -17,14 +17,14 @@ class kernel {
 
 	ValueT	m_sigma;
 	ValueT	m_sigma_coefficient;
-	ValueT	m_accum;		// Sum of all kernel's values. Used for normalization.
+	ValueT	m_sum;					// Sum of all kernel's values. Used for normalization.
 
 	void calculate() {
-		m_accum = 0;
+		m_sum = 0;
 		for ( int i = -m_radius; i <= m_radius; ++i ) {
 			ValueT value = std::exp( -(i * i) / (m_sigma * m_sigma * 2) );
 			m_kernel[i + m_radius] = value;
-			m_accum += value;
+			m_sum += value;
 		}
 	}
 
@@ -44,7 +44,7 @@ public:
 
 	void normalize() {
 		for ( int i = 0; i <= m_radius2; ++i ) {
-			m_kernel[i] /= m_accum;
+			m_kernel[i] /= m_sum;
 		}
 	}
 
@@ -107,13 +107,11 @@ public:
 	void blur( ImageViewT & image, ParallelForT & parallel_for, int override_num_threads ) {
 		assert( image.components() == 4 );
 
-		int radius = m_kernel.radius();
-
 		// Horizontal pass...
 		parallel_for.run_and_wait( 0, image.height(), [&]( int beg, int end ) {
 			for ( int i = beg; i < end; i++ ) {
 				::san::blur::line_adaptor line( (uint32_t *)image.row_ptr( i ), image.width(), 1 );
-				do_line( line, 0, image.width(), radius );
+				do_line( line, 0, image.width(), m_kernel.radius() );
 			}
 		}, override_num_threads );
 
@@ -121,7 +119,7 @@ public:
 		parallel_for.run_and_wait( 0, image.width(), [&]( int beg, int end ) {
 			for ( int i = beg; i < end; i++ ) {
 				::san::blur::line_adaptor line( (uint32_t *)image.col_ptr( i ), image.height(), image.stride() / image.components() );
-				do_line( line, 0, image.height(), radius );
+				do_line( line, 0, image.height(), m_kernel.radius() );
 			}
 		}, override_num_threads );
 	}

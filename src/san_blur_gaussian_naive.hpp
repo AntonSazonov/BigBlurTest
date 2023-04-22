@@ -4,6 +4,8 @@
 #include <cmath>
 #include <cstring>
 
+// Two-pass gaussian implementation
+
 namespace san::blur::gaussian {
 
 template <int MaxRadius, typename ValueT = float>

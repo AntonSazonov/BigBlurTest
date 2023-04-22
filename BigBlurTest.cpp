@@ -17,6 +17,7 @@
 #include "san_parallel_for.hpp"
 
 #include "san_image_list.hpp"
+#include "san_impls_list.hpp"
 
 #include "ui/san_ui.hpp"
 #include "ui/san_ui_ctrl.hpp"
@@ -25,8 +26,6 @@
 #include "ui/san_ui_ctrl_text.hpp"
 #include "ui/san_ui_ctrl_link.hpp"
 //#include "ui/san_ui_ctrl_slider.hpp"
-
-#include "san_impl_list.hpp"
 
 class app final : public san::window {
 	san::cpu::features				m_cpu_features;
@@ -43,7 +42,7 @@ class app final : public san::window {
 
 	// Implementation list.
 	// Function params.: 'radius', '# of threads' or 0 - max. available threads from 'parallel_for'.
-	san::impl_list <std::function <void(int, int)>>	m_impls;
+	san::impls_list <std::function <void(int, int)>>	m_impls;
 
 public:
 	app( int width, int height )

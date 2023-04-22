@@ -47,6 +47,7 @@ add_executable( ${BBT_PROJECT_NAME}
 	src/san_parallel_for.hpp
 	src/san_surface.hpp
 	src/san_image_list.hpp
+	src/san_impls_list.hpp
 	src/san_agg_image_adaptor.hpp
 
 	src/ui/san_ui.hpp

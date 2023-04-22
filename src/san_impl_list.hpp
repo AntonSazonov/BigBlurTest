@@ -31,12 +31,14 @@
 namespace san {
 
 #define EMPLACE_IMPL_FUNCT( name, image, func )																		\
-		m_impls.emplace_front( name, std::bind( func,																\
-				std::ref( image ), std::ref( a_parallel_for ), std::placeholders::_1, std::placeholders::_2 ) );
+		m_impls.emplace_front( name,																				\
+			std::bind( func, std::ref( image ), std::ref( a_parallel_for ), std::placeholders::_1, std::placeholders::_2 ) );
 
 // Class must have function 'blur( ImageViewT & image, ParallelForT & parallel_for, int radius, int override_num_threads )'
 #define EMPLACE_IMPL_CLASS( name, image, inst )																										\
-		m_impls.emplace_front( name, std::bind( &decltype(inst)::template blur<std::remove_reference_t<decltype(image)>, san::parallel_for>, inst,	\
+		m_impls.emplace_front( name,																												\
+			std::bind(																																\
+				&decltype(inst)::template blur<std::remove_reference_t<decltype(image)>, std::remove_reference_t<decltype(a_parallel_for)>>, inst,	\
 				std::ref( image ), std::ref( a_parallel_for ), std::placeholders::_1, std::placeholders::_2 ) );
 
 template <typename FuncT>
@@ -46,7 +48,7 @@ class impl_list {
 	agg::stack_blur <agg::rgba8, agg::stack_blur_calc_rgba<uint32_t>>		m_agg_stack_blur;
 	agg::recursive_blur	<agg::rgba8, agg::recursive_blur_calc_rgba<double>>	m_agg_recursive_blur;
 
-	san::blur::gaussian::naive_test <16>									m_gaussian_naive;
+	san::blur::gaussian::naive_test <254>									m_gaussian_naive;
 
 
 	using simd_calc_sse2	= san::blur::stack::simd::sse128_u32_t<2>;
@@ -64,9 +66,9 @@ public:
 	{
 
 		EMPLACE_IMPL_FUNCT( "agg::stack_blur_rgba32",							surface_view_agg, (agg::stack_blur_rgba32<san::agg_image_adaptor, san::parallel_for>) )
-		EMPLACE_IMPL_CLASS( "agg::stack_blur::blur",							surface_view_agg, m_agg_stack_blur )
-		EMPLACE_IMPL_CLASS( "agg::recursive_blur::blur",						surface_view_agg, m_agg_recursive_blur )
-		EMPLACE_IMPL_CLASS( "san::blur::gaussian::naive",						surface_view_san, m_gaussian_naive )
+		EMPLACE_IMPL_CLASS( "agg::stack_blur",									surface_view_agg, m_agg_stack_blur )
+		EMPLACE_IMPL_CLASS( "agg::recursive_blur",								surface_view_agg, m_agg_recursive_blur )
+		EMPLACE_IMPL_CLASS( "san::blur::gaussian::naive (will fail)",			surface_view_san, m_gaussian_naive )
 		EMPLACE_IMPL_FUNCT( "san::blur::stack::naive",							surface_view_san, (san::blur::stack::naive<san::blur::stack::naive_calc<>, san::parallel_for>) )
 
 		if ( cpu_features.SSE2() ) {
@@ -75,9 +77,7 @@ public:
 
 		if ( cpu_features.SSE41() ) {
 			EMPLACE_IMPL_FUNCT( "san::blur::stack::simd::naive (SSE4.1)",		surface_view_san, (san::blur::stack::simd::naive<simd_calc_sse41, san::parallel_for>) )
-		}
 
-		if ( cpu_features.SSE41() ) {
 			EMPLACE_IMPL_CLASS( "san::blur::stack::simd::optimized_1 (SSE4.1)",	surface_view_san, m_san_opt_1 )
 			EMPLACE_IMPL_CLASS( "san::blur::stack::simd::optimized_2 (SSE4.1)",	surface_view_san, m_san_opt_2 )
 		}

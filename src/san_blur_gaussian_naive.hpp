@@ -139,14 +139,10 @@ public:
 
 	template <typename ImageViewT, typename ParallelForT>
 	void blur( ImageViewT & image, ParallelForT & parallel_for, int radius, int override_num_threads ) {
-
-		fprintf( stderr, "radius = %d, override_num_threads = %d\n", radius, override_num_threads );
 		if ( radius < 1 ) return;
 		m_kernel.set_radius( radius );
 		m_kernel.normalize();
-#if 1
 		m_filter.blur( image, parallel_for, override_num_threads );
-#endif
 	}
 }; // class naive_test
 

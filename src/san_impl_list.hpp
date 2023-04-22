@@ -31,12 +31,12 @@
 namespace san {
 
 #define EMPLACE_IMPL_FUNCT( name, image, func )																		\
-		emplace( name, std::bind( func,																				\
+		m_impls.emplace_front( name, std::bind( func,																\
 				std::ref( image ), std::ref( a_parallel_for ), std::placeholders::_1, std::placeholders::_2 ) );
 
-// Class must have function 'blur( ImageViewT & image, ParallelFor & parallel_for, int radius, int override_num_threads )'
-#define EMPLACE_IMPL_CLASS( name, image, inst )																							\
-		emplace( name, std::bind( &decltype(inst)::template blur<std::remove_reference_t<decltype(image)>, san::parallel_for>, inst,	\
+// Class must have function 'blur( ImageViewT & image, ParallelForT & parallel_for, int radius, int override_num_threads )'
+#define EMPLACE_IMPL_CLASS( name, image, inst )																										\
+		m_impls.emplace_front( name, std::bind( &decltype(inst)::template blur<std::remove_reference_t<decltype(image)>, san::parallel_for>, inst,	\
 				std::ref( image ), std::ref( a_parallel_for ), std::placeholders::_1, std::placeholders::_2 ) );
 
 template <typename FuncT>
@@ -81,11 +81,6 @@ public:
 			EMPLACE_IMPL_CLASS( "san::blur::stack::simd::optimized_1 (SSE4.1)",	surface_view_san, m_san_opt_1 )
 			EMPLACE_IMPL_CLASS( "san::blur::stack::simd::optimized_2 (SSE4.1)",	surface_view_san, m_san_opt_2 )
 		}
-	}
-
-	template <typename ... Args>
-	auto emplace( Args && ... args ) {
-		return m_impls.emplace_front( std::forward<Args>(args)... );
 	}
 
 	// For 'range-based for' loop...

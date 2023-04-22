@@ -9,6 +9,7 @@ Debug
 Release
 deprecated
 _gdb.cmd
+san_cmake_config.hpp
 *.pdf
 *.log
 

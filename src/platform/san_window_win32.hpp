@@ -83,7 +83,8 @@ class window : public window_base {
 #endif
 
 	HWND				m_handle;
-	bool				m_wait_events	= true;
+	bool				m_wait_events				= true;
+	bool				m_are_input_events_enabled	= true;
 
 	static HINSTANCE	m_instance;
 	static ATOM			m_class_atom;
@@ -106,12 +107,10 @@ class window : public window_base {
 
 		if ( p_this ) {
 			switch ( uMsg ) {
-				case WM_MOUSEMOVE:
-					p_this->on_mouse_motion( LOWORD( lParam ), HIWORD( lParam ) );
-					break;
+				case WM_MOUSEMOVE:		p_this->on_mouse_motion( LOWORD( lParam ), HIWORD( lParam ) ); break;
 
-				case WM_LBUTTONDOWN:	p_this->on_mouse_button( LOWORD( lParam ), HIWORD( lParam ), mouse_button_e::left, true );	break;
-				case WM_LBUTTONUP:		p_this->on_mouse_button( LOWORD( lParam ), HIWORD( lParam ), mouse_button_e::left, false );	break;
+				case WM_LBUTTONDOWN:	p_this->on_mouse_button( LOWORD( lParam ), HIWORD( lParam ), mouse_button_e::left, true );  break;
+				case WM_LBUTTONUP:		p_this->on_mouse_button( LOWORD( lParam ), HIWORD( lParam ), mouse_button_e::left, false ); break;
 
 				case WM_KEYDOWN:		p_this->on_key( int(wParam), true  ); break;
 				case WM_KEYUP:			p_this->on_key( int(wParam), false ); break;
@@ -242,6 +241,11 @@ public:
 	void hide() const override { ShowWindow( m_handle, SW_HIDE ); }
 	void quit() const override { PostQuitMessage( 0 ); }
 
+	// Enable/disable mouse and keyboard events.
+	void enable_input_events( bool state ) override {
+		m_are_input_events_enabled = state;
+	}
+
 	double get_time_ms() const override {
 		LARGE_INTEGER counter;
 		QueryPerformanceCounter( &counter );
@@ -319,7 +323,17 @@ public:
 				if ( res ) {
 					if ( msg.message == WM_QUIT ) break;
 					TranslateMessage( &msg );
-					DispatchMessage( &msg );
+
+					bool is_mouse_or_key = 
+						(msg.message >= WM_MOUSEFIRST && msg.message <= WM_MOUSELAST) ||
+						(msg.message >= WM_KEYFIRST   && msg.message <= WM_KEYLAST  );
+
+					// Filter events
+					if ( m_are_input_events_enabled ||
+					   (!m_are_input_events_enabled && !is_mouse_or_key ) )
+					{
+						DispatchMessage( &msg );
+					}
 				}
 
 				on_frame();

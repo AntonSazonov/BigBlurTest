@@ -21,6 +21,8 @@ public:
 	virtual void hide() const = 0;
 	virtual void quit() const = 0;
 
+	virtual void enable_input_events( bool ) = 0;
+
 	virtual double get_time_ms() const = 0;
 
 	virtual surface_view get_surface_view() = 0;

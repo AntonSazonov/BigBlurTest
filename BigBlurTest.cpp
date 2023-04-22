@@ -147,6 +147,7 @@ public:
 		m_bench_radius		= 0;
 		m_bench_interations	= 1;
 
+		enable_input_events( false );
 		set_wait_events( false );
 
 		m_is_benchmarking = true;
@@ -156,12 +157,11 @@ public:
 	void on_frame() override {
 
 		// Copy image to window's surface
-		//blit( m_backbuffer_copy.get() );
-		//m_backbuffer_copy.blit_to( san::window::get_surface_view() );
 		m_backbuffer_copy->blit_to( m_surface_view_san );
 
 		if ( !m_is_benchmarking ) {
-			//m_gaussian_naive.blur( m_surface_view_san, m_parallel_for, m_mouse_x, 0/*max. threads*/ );
+//			san::blur::gaussian::naive_test <16> gaussian;
+//			gaussian.blur( m_surface_view_san, m_parallel_for, m_mouse_x, 0/*max. threads*/ );
 		}
 
 		if ( m_is_benchmarking ) {
@@ -188,8 +188,9 @@ public:
 			if ( ms >= m_bench_time_ms ) {
 
 				//m_mouse_x = m_bench_radius;
-				set_wait_events( true );
 				m_is_benchmarking = false;
+				set_wait_events( true );
+				enable_input_events( true );
 
 				double sec = ms / 1e3;
 				double fps = m_bench_interations / sec;

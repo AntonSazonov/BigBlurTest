@@ -49,14 +49,14 @@ void naive_line_process( ::san::blur::line_adaptor & line, int beg, int end/*exc
 	}
 }
 
-template <typename SIMDCalcT, typename ParallelFor>
-void naive( san::surface_view & image, ParallelFor & parallel_for, int radius, int override_num_threads ) {
+template <typename SIMDCalcT, typename ParallelForT>
+void naive( san::surface_view & image, ParallelForT & parallel_for, int radius, int override_num_threads ) {
 	if ( radius <= 0 ) return;
 
 	// Horizontal pass...
 	parallel_for.run_and_wait( 0, image.height(), [&]( int a, int b ) {
 		for ( int y = a; y < b; y++ ) {
-			::san::blur::line_adaptor line( (uint32_t *)image.row_ptr( y ), image.width(), 1/*advance*/ );
+			::san::blur::line_adaptor line( (uint32_t *)image.row_ptr( y ), image.width(), 1 );
 			naive_line_process<SIMDCalcT>( line, 0, image.width(), radius );
 		}
 	}, override_num_threads );
@@ -64,7 +64,7 @@ void naive( san::surface_view & image, ParallelFor & parallel_for, int radius, i
 	// Vertical pass...
 	parallel_for.run_and_wait( 0, image.width(), [&]( int a, int b ) {
 		for ( int x = a; x < b; x++ ) {
-			::san::blur::line_adaptor line( (uint32_t *)image.col_ptr( x ), image.height(), image.stride() / 4/*sizeof uint32_t*/ );
+			::san::blur::line_adaptor line( (uint32_t *)image.col_ptr( x ), image.height(), image.stride() / image.components() );
 			naive_line_process<SIMDCalcT>( line, 0, image.height(), radius );
 		}
 	}, override_num_threads );

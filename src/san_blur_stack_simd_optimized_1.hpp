@@ -79,8 +79,8 @@ class optimized_1 {
 	}
 
 public:
-	template <typename ImageViewT, typename ParallelFor>
-	void blur( ImageViewT & image, ParallelFor & parallel_for, int radius, int override_num_threads ) {
+	template <typename ImageViewT, typename ParallelForT>
+	void blur( ImageViewT & image, ParallelForT & parallel_for, int radius, int override_num_threads ) {
 		if ( radius < 1 ) return;
 		if ( radius > 254 ) radius = 254;
 
@@ -99,7 +99,7 @@ public:
 		// Vertical pass...
 		parallel_for.run_and_wait( 0, image.width(), [&]( int a, int b ) {
 			for ( int x = a; x < b; x++ ) {
-				do_line( (uint32_t *)image.col_ptr( x ), image.height(), image.stride() / 4 );
+				do_line( (uint32_t *)image.col_ptr( x ), image.height(), image.stride() / image.components() );
 			}
 		}, override_num_threads );
 	}

@@ -113,8 +113,8 @@ namespace agg
         typedef CalculatorT calculator_type;
 
         //--------------------------------------------------------------------
-		template <typename Img, typename ParallelFor>
-		void blur_x( Img & img, ParallelFor & parallel_for, int radius, int override_num_threads )
+		template <typename Img, typename ParallelForT>
+		void blur_x( Img & img, ParallelForT & parallel_for, int radius, int override_num_threads )
         {
             if(radius < 1) return;
 
@@ -211,8 +211,8 @@ namespace agg
         }
 
         //--------------------------------------------------------------------
-		template <typename Img, typename ParallelFor>
-		void blur( Img & img, ParallelFor & parallel_for, int radius, int override_num_threads )
+		template <typename Img, typename ParallelForT>
+		void blur( Img & img, ParallelForT & parallel_for, int radius, int override_num_threads )
         {
             blur_x(img, parallel_for, radius, override_num_threads );
             pixfmt_transposer<Img> img2(img);
@@ -277,8 +277,8 @@ namespace agg
 
 
     //=======================================================stack_blur_rgba32
-	template <typename Img, typename ParallelFor>
-	void stack_blur_rgba32( Img & img, ParallelFor & parallel_for, int radius, int override_num_threads )
+	template <typename Img, typename ParallelForT>
+	void stack_blur_rgba32( Img & img, ParallelForT & parallel_for, int radius, int override_num_threads )
     {
         if ( radius <= 0 ) return;
 
@@ -604,8 +604,8 @@ namespace agg
         typedef typename calculator_type::value_type calc_type;
 
         //--------------------------------------------------------------------
-		template <typename Img, typename ParallelFor>
-		void blur_x( Img & img, ParallelFor & parallel_for, double radius, int override_num_threads ) {
+		template <typename Img, typename ParallelForT>
+		void blur_x( Img & img, ParallelForT & parallel_for, double radius, int override_num_threads ) {
             if(radius < 0.62) return;
             if(img.width() < 3) return;
 
@@ -687,8 +687,8 @@ namespace agg
         }
 
         //--------------------------------------------------------------------
-		template <typename Img, typename ParallelFor>
-		void blur( Img & img, ParallelFor & parallel_for, double radius, int override_num_threads ) {
+		template <typename Img, typename ParallelForT>
+		void blur( Img & img, ParallelForT & parallel_for, double radius, int override_num_threads ) {
             blur_x( img, parallel_for, radius, override_num_threads );
             pixfmt_transposer <Img> img2( img );
             blur_x( img2, parallel_for, radius, override_num_threads );

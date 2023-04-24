@@ -61,7 +61,7 @@ public:
 		x += m_x;
 		y += m_y;
 
-		value_type * p = row_ptr( x, y, len ) + (x << 2);
+		value_type * p = row_ptr( x, y, len ) + x * 4;
 		do {
 			p[order_type::R] = colors->r;
 			p[order_type::G] = colors->g;
@@ -76,13 +76,14 @@ public:
 		x += m_x;
 		y += m_y;
 
+		value_type * p = m_image.pix_ptr( x, y );
 		do {
-			value_type * p = row_ptr( x, y++, 1 ) + (x << 2);
 			p[order_type::R] = colors->r;
 			p[order_type::G] = colors->g;
 			p[order_type::B] = colors->b;
 			p[order_type::A] = colors->a;
 			++colors;
+			p += m_image.stride();
 		} while ( --len );
 	}
 }; // class agg_image_adaptor

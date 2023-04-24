@@ -16,25 +16,21 @@
 
 namespace san {
 
-#define USE_DIB
-
-#ifdef USE_DIB
 class dib_section {
 	struct bitmap_info {
 		BITMAPV5HEADER	m_bi = {};
 
-		bitmap_info( int width, int height, uint32_t mask_r, uint32_t mask_g, uint32_t mask_b, uint32_t mask_a ) {
-			ZeroMemory( &m_bi, sizeof( BITMAPV5HEADER ) );
+		bitmap_info( int width, int height ) {
 			m_bi.bV5Size		= sizeof( BITMAPV5HEADER );
 			m_bi.bV5Width		= width;
 			m_bi.bV5Height		= -height;
 			m_bi.bV5Planes		= 1;
 			m_bi.bV5BitCount	= 32;
-			m_bi.bV5Compression	= BI_RGB;//BI_BITFIELDS;
-			m_bi.bV5RedMask		= mask_r;
-			m_bi.bV5GreenMask	= mask_g;
-			m_bi.bV5BlueMask	= mask_b;
-			m_bi.bV5AlphaMask	= mask_a;
+			m_bi.bV5Compression	= BI_BITFIELDS;
+			m_bi.bV5RedMask		= 0x00ff0000;
+			m_bi.bV5GreenMask	= 0x0000ff00;
+			m_bi.bV5BlueMask	= 0x000000ff;
+			m_bi.bV5AlphaMask	= 0xff000000;
 		}
 	}; // struct bitmap_info
 
@@ -45,8 +41,8 @@ class dib_section {
 	surface				m_surface;
 
 public:
-	dib_section( int width, int height, uint32_t mask_r, uint32_t mask_g, uint32_t mask_b, uint32_t mask_a )
-		: m_bitmap_info( width, height, mask_r, mask_g, mask_b, mask_a )
+	dib_section( int width, int height )
+		: m_bitmap_info( width, height )
 		, m_hdc( CreateCompatibleDC( NULL ) )
 		, m_dib( CreateDIBSection( GetDC( NULL ), (BITMAPINFO *)&m_bitmap_info.m_bi, DIB_RGB_COLORS, reinterpret_cast<void **>(&m_ptr), NULL, 0 ) )
 		, m_surface( (uint8_t *)m_ptr, width, height, width * 4, 4 )
@@ -69,18 +65,13 @@ public:
 	int		get_width()		const { return m_surface.width(); }
 	int		get_height()	const { return m_surface.height(); }
 }; // class dib_section
-#endif
+
 
 class window : public window_base {
 	LARGE_INTEGER		m_frequency;
 	LARGE_INTEGER		m_start;
 
-#ifdef USE_DIB
 	dib_section			m_dib_section;
-#else
-	surface				m_surface;
-	BITMAPINFO			m_bi;
-#endif
 
 	HWND				m_wnd;
 	HDC					m_hdc;
@@ -148,35 +139,12 @@ class window : public window_base {
 	}
 
 	void update_surface( HDC hdc ) const {
-#ifdef USE_DIB
 		BitBlt( m_hdc, 0, 0, m_dib_section.get_width(), m_dib_section.get_height(), m_dib_section.get_hdc(), 0, 0, SRCCOPY );
-#else
-		//SetDIBitsToDevice( m_hdc, 0, 0, m_dib_section.get_width(), m_dib_section.get_height(), 0, 0, 0, m_dib_section.get_height(), m_dib_section.get_ptr(), (BITMAPINFO *)&m_dib_section.get_bi(), DIB_RGB_COLORS );
-		SetDIBitsToDevice( m_hdc, 0, 0, m_surface.width(), m_surface.height(), 0, 0, 0, m_surface.height(), m_surface.ptr(), (BITMAPINFO *)&m_bi, DIB_RGB_COLORS );
-#endif
 	}
 
 public:
 	// width, height - client area dimentions
-	window( int width, int height, const char * title )
-#ifdef USE_DIB
-		//: m_dib_section( width, height, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000 )	// 739 ms. (Debug, x10)
-		: m_dib_section( width, height, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000 )	//  21 ms. (Debug, x10)
-		//: m_dib_section( width, height, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff )	// 768 ms. (Debug, x10)
-#else
-		: m_surface( width, height, 4 )
-#endif
-	{
-
-#ifndef USE_DIB
-		ZeroMemory( &m_bi, sizeof( BITMAPINFO ) );
-		m_bi.bmiHeader.biSize			= sizeof( BITMAPINFO );
-		m_bi.bmiHeader.biWidth			= width;
-		m_bi.bmiHeader.biHeight			= -height;
-		m_bi.bmiHeader.biPlanes			= 1;
-		m_bi.bmiHeader.biBitCount		= 32;
-		m_bi.bmiHeader.biCompression	= BI_RGB;//BI_BITFIELDS;
-#endif
+	window( int width, int height, const char * title ) : m_dib_section( width, height ) {
 
 		QueryPerformanceFrequency( &m_frequency );
 		QueryPerformanceCounter( &m_start );
@@ -185,7 +153,7 @@ public:
 
 		if ( !m_class_atom && m_ref_count <= 0 ) {
 			WNDCLASS wc = {};
-			wc.style			= CS_OWNDC | CS_VREDRAW | CS_HREDRAW;
+			wc.style			= CS_CLASSDC;//CS_OWNDC | CS_VREDRAW | CS_HREDRAW;
 			wc.lpfnWndProc		= window_proc;
 			wc.hInstance		= m_instance;
 			wc.hCursor			= LoadCursor( NULL, IDC_ARROW );
@@ -201,7 +169,7 @@ public:
 		RECT rc = { 0, 0, width, height };
 		AdjustWindowRect( &rc, style, FALSE ); // WS_OVERLAPPED can't be used
 
-		m_wnd = CreateWindow( reinterpret_cast<LPCTSTR>( m_class_atom ),
+		m_wnd = CreateWindowEx( 0, reinterpret_cast<LPCTSTR>( LOWORD( m_class_atom ) ),
 			title, style, 0, 0, rc.right - rc.left, rc.bottom - rc.top, NULL, NULL, m_instance, this );
 		if ( !m_wnd ) {
 			print_last_error( "CreateWindowEx()" );
@@ -209,7 +177,6 @@ public:
 		}
 
 		m_hdc = GetDC( m_wnd );
-
 
 		// Screen work area dimentions
 		RECT scr_work_area;
@@ -270,19 +237,11 @@ public:
 	}
 
 	surface_view get_surface_view() override {
-#ifdef USE_DIB
 		return surface_view( m_dib_section.get_surface() );
-#else
-		return surface_view( m_surface );
-#endif
 	}
 
 	std::shared_ptr <surface> get_surface_copy() const {
-#ifdef USE_DIB
 		surface * p = new (std::nothrow) surface( m_dib_section.get_surface() );
-#else
-		surface * p = new (std::nothrow) surface( m_surface );
-#endif
 		return std::shared_ptr<surface>( p, []( surface * p ) { delete p; } );
 	}
 

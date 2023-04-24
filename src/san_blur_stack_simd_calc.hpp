@@ -1,8 +1,5 @@
 #pragma once
 
-#include <emmintrin.h>
-#include <smmintrin.h>
-
 namespace san::blur::stack::simd {
 
 // https://github.com/vectorclass/version2/blob/master/instrset.h
@@ -18,7 +15,7 @@ static inline uint32_t bit_scan_reverse( unsigned long a ) {
 	_BitScanReverse( (unsigned long *)&r, a );
 	return r;
 }
-#endif // (defined (__GNUC__) || defined(__clang__)) && !defined (_MSC_VER)
+#endif // (defined( __GNUC__ ) || defined( __clang__ )) && !defined( _MSC_VER )
 
 // https://github.com/vectorclass/version2/blob/master/vectori128.h
 class divisor {

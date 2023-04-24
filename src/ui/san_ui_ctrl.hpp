@@ -1,9 +1,5 @@
 #pragma once
 
-#include <string>
-#include <functional>
-#include <blend2d.h>
-
 namespace san::ui {
 
 class control {

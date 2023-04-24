@@ -1,9 +1,5 @@
 #pragma once
 
-#include <list>
-#include <filesystem>
-#include "stb_impl.hpp"
-
 namespace san {
 
 class image_list {

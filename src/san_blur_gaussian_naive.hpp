@@ -1,9 +1,5 @@
 #pragma once
 
-#include <array>
-#include <cmath>
-#include <cstring>
-
 // Two-pass gaussian implementation
 
 namespace san::blur::gaussian {

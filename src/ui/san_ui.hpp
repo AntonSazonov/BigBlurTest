@@ -1,9 +1,5 @@
 #pragma once
 
-#include <list>
-#include <blend2d.h>
-//#include "san_ui_console.hpp"
-
 namespace san::ui {
 
 template <typename ControlBaseT>
@@ -72,6 +68,7 @@ public:
 
 	void on_mouse_motion( int x, int y ) {
 		BLPoint xy( x, y );
+
 		ControlBaseT * p_ctl = find_first_by_point( xy );
 		if ( p_ctl ) {
 			if ( p_ctl != m_hover ) {

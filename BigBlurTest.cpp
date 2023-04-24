@@ -1,9 +1,12 @@
-#include <cstdio>
-#include <cstdint>
-#include <memory>
+
+#include "san_pch.hpp"
 
 #include "san_cmake_config.hpp"
 #include "san_cpu_features.hpp"
+
+#include "stb_impl.hpp"
+#include "san_surface.hpp"
+
 
 #include "platform/san_platform.hpp"
 
@@ -11,7 +14,18 @@
  #include "platform/san_window_win32.hpp"
 #endif
 
-#include "stb_impl.hpp"
+#include "san_blur_line_adaptor.hpp"			// Common line adaptor for naive implementations
+#include "san_blur_gaussian_naive.hpp"			// Gaussian blur naive impl.
+#include "san_blur_stack_luts.hpp"				// Lookup tables common for all stack blur impls.
+
+#include "san_blur_stack_naive_calc.hpp"		// Naive stack blur impl.
+#include "san_blur_stack_naive.hpp"
+
+#include "san_blur_stack_simd_calc.hpp"			// SIMD stack blur impls.
+#include "san_blur_stack_simd_naive.hpp"
+
+#include "san_blur_stack_simd_optimized_1.hpp"	// Optimized versions with LUTs
+#include "san_blur_stack_simd_optimized_2.hpp"
 
 #include "san_agg_image_adaptor.hpp"
 #include "san_parallel_for.hpp"
@@ -19,13 +33,15 @@
 #include "san_image_list.hpp"
 #include "san_impls_list.hpp"
 
+#include <blend2d.h>
 #include "ui/san_ui.hpp"
 #include "ui/san_ui_ctrl.hpp"
 #include "ui/san_ui_ctrl_button.hpp"
 #include "ui/san_ui_ctrl_checkbox.hpp"
 #include "ui/san_ui_ctrl_text.hpp"
 #include "ui/san_ui_ctrl_link.hpp"
-//#include "ui/san_ui_ctrl_slider.hpp"
+#include "ui/san_ui_ctrl_slider.hpp"
+
 
 class app final : public san::window {
 	san::cpu::features				m_cpu_features;
@@ -86,6 +102,8 @@ public:
 			y += 40;
 		}
 		//m_ui.add<san::ui::checkbox>( BLPoint{ 10, double(y) }, "Bench on original size image", [&]( bool value ){ printf( "Checkbox: %d\n", int(value) ); /*m_bench_on_original_size = value;*/ }, false );
+
+		m_ui.add<san::ui::slider>( BLRect{ 500, 10, 400, 30 }, []( float value ){ std::printf( "Slider: %.1f\n", value ); }, 16, 0, 64 );
 	}
 
 
@@ -138,6 +156,9 @@ public:
 
 		m_bench_name = pair.first;
 		m_bench_func = pair.second;
+
+		return; // DEBUG!!!
+
 		std::printf( "\nBenchmarking (%d ms.): %s \n", m_bench_time_ms, m_bench_name.c_str() );
 
 		// Disable input while bench.
@@ -159,11 +180,14 @@ public:
 
 		if ( !m_is_benchmarking ) {
 #if 1
-			san::blur::gaussian::naive_test <32> gaussian;
-			gaussian.blur( m_surface_view_san, m_parallel_for, m_mouse_x, 0/*max. threads*/ );
+#if 1
+			//san::blur::gaussian::naive_test <32> gaussian;
+			//gaussian.blur( m_surface_view_san, m_parallel_for, m_mouse_x, 0/*max. threads*/ );
+			if ( m_bench_func ) m_bench_func( m_mouse_x, 0 );
 #else
 			agg::recursive_blur	<agg::rgba8, agg::recursive_blur_calc_rgba<double>>	agg_recursive_blur;
 			agg_recursive_blur.blur( m_surface_view_agg, m_parallel_for, m_mouse_x, 0/*max. threads*/ );
+#endif
 #endif
 		}
 
@@ -172,7 +196,12 @@ public:
 			// Blur window's surface
 			{
 				double time_func_start = san::window::time_us();
-				m_bench_func( m_bench_radius, 0/* thread count; 0 means max. available */ );
+				if ( m_bench_func ) {
+					m_bench_func( m_bench_radius, 0/* thread count; 0 means max. available */ );
+				} else {
+					fprintf( stderr, "m_bench_func( %s ) is empty. Terminating...\n", m_bench_name.c_str() );
+					san::window::quit();
+				}
 				m_bench_time_func += san::window::time_us() - time_func_start;
 			}
 

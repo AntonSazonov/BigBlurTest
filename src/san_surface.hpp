@@ -1,48 +1,63 @@
 #pragma once
 
-#include <cstring>		// std::memcpy
-#include <memory>		// std::shared_ptr
-#include "stb_impl.hpp"
-
 namespace san {
 
 class surface {
-	bool		m_managed_outside	= false;
-	uint8_t *	m_data				= nullptr;
+	bool		m_managed_outside;
 	int			m_width;
 	int			m_height;
-	int			m_stride;
 	int			m_components;	// 3 - RGB/BGR, 4 - RGBA/ARGB/...
+	int			m_stride;
+	uint8_t *	m_data;
 
-public:
-	surface( int width, int height, int components )
-		: m_data( new (std::nothrow) uint8_t [width * height * components] )
-		, m_width( width )
-		, m_height( height )
-		, m_stride( width * components )
-		, m_components( components ) {}
-
-	surface( uint8_t * p, int width, int height, int stride, int components )
-		: m_managed_outside( true )
-		, m_data( p )
-		, m_width( width )
-		, m_height( height )
-		, m_stride( stride )
-		, m_components( components ) {}
-
-	surface( const surface & s )
-		: surface( s.width(), s.height(), s.components() )
-	{
-		if ( m_data && s ) {
-			s.blit_to( this );
-		}
-	}
-
-	virtual ~surface() {
+	void free() {
 		if ( !m_managed_outside ) {
 			delete [] m_data;
 		}
 	}
+
+public:
+	surface( int width, int height, int components )
+		: m_managed_outside( false )
+		, m_width( width )
+		, m_height( height )
+		, m_components( components )
+		, m_stride( (((m_width * m_components * 8) + 31) & ~31) >> 3 )
+		, m_data( new (std::nothrow) uint8_t [m_stride * m_height] ) {}
+
+	surface( uint8_t * p, int width, int height, int stride, int components )
+		: m_managed_outside( true )
+		, m_width( width )
+		, m_height( height )
+		, m_components( components )
+		, m_stride( stride )
+		, m_data( p ) {}
+
+	surface( const surface & other )
+		: m_managed_outside( false )
+		, m_width( other.m_width )
+		, m_height(	other.m_height )
+		, m_components(	other.m_components )
+		, m_stride( other.m_stride )
+		, m_data( new (std::nothrow) uint8_t [m_stride * m_height] )
+	{
+		if ( m_data && other ) other.blit_to( this );
+	}
+
+	surface & operator = ( const surface & other ) {
+		if ( this == &other ) return *this;
+		free();
+		m_managed_outside	= false;
+		m_width				= other.m_width;
+		m_height			= other.m_height;
+		m_components		= other.m_components;
+		m_stride			= other.m_stride;
+		m_data				= new (std::nothrow) uint8_t [m_stride * m_height];
+		if ( m_data && other ) other.blit_to( this );
+		return *this;
+	}
+
+	virtual ~surface() { free(); }
 
 	explicit operator bool () const { return m_data != nullptr; }
 
@@ -51,16 +66,13 @@ public:
 	int			stride()				const { return m_stride; }
 	int			components()			const { return m_components; }
 
-//#ifdef __GNUG__
-//#warning "TODO: template pointer type impls."
-//#endif
 	uint8_t *	ptr()					const { return m_data; }
 	uint8_t *	row_ptr( int y )		const { return ptr() + y * m_stride; }
 	uint8_t *	col_ptr( int x )		const { return ptr() + x * m_components; }
 	uint8_t *	pix_ptr( int x, int y )	const { return row_ptr( y ) + x * m_components; }
 
 	// Swap 2 components
-	void swap_components( int a, int b ) {
+	void swap_components( uint8_t a, uint8_t b ) {
 		for ( int y = 0; y < m_height; y++ ) {
 			uint8_t * p = row_ptr( y );
 			for ( int x = 0; x < m_width; x++ ) {
@@ -76,35 +88,23 @@ public:
 		if ( m_width  == p_dst.width() &&
 			 m_height == p_dst.height() )
 		{
+			int len = m_width * m_components;
 			for ( int y = 0; y < m_height; y++ ) {
 				uint8_t * ps = row_ptr( y );
 				uint8_t * pd = p_dst.row_ptr( y );
-				std::memcpy( pd, ps, m_width * m_components );
+				std::memcpy( pd, ps, len );
 			}
 		} else {
 			// Resize...
-#if 0
-			bool result = stbir_resize_uint8_generic(
-					m_data, m_width, m_height, m_stride,							// src
-					p_dst.ptr(), p_dst.width(), p_dst.height(), p_dst.stride(),	// dst
-					m_components, STBIR_ALPHA_CHANNEL_NONE, 0/*flags*/, STBIR_EDGE_CLAMP/*STBIR_EDGE_ZERO*/,
-					STBIR_FILTER_BOX, STBIR_COLORSPACE_LINEAR, nullptr/*alloc_context*/ );
-#else
 			stbir_resize_uint8(
-					m_data, m_width, m_height, m_stride,							// src
+					m_data, m_width, m_height, m_stride,						// src
 					p_dst.ptr(), p_dst.width(), p_dst.height(), p_dst.stride(),	// dst
 					m_components );
-#endif
 		}
 	}
 
-	void blit_to( surface * p_dst ) const {
-		blit_to( *p_dst );
-	}
-
-	void blit_to( std::shared_ptr <surface> p_dst ) const {
-		blit_to( *(p_dst.get()) );
-	}
+	void blit_to(                  surface * p_dst ) const { blit_to( *p_dst ); }
+	void blit_to( std::shared_ptr <surface>  p_dst ) const { blit_to( *p_dst ); }
 }; // class surface
 
 
@@ -112,10 +112,9 @@ public:
 class surface_view : public surface {
 public:
 	surface_view( surface & s ) : surface( s.ptr(), s.width(), s.height(), s.stride(), s.components() ) {}
-	surface_view( surface * s ) : surface( s->ptr(), s->width(), s->height(), s->stride(), s->components() ) {}
-	surface_view( std::shared_ptr <surface> & s ) : surface_view( s.get() ) {}
+	surface_view( std::shared_ptr <surface> & s ) : surface_view( *s ) {}
 
-	void blit_to( surface_view p_dst ) const {
+	void blit_to( surface_view & p_dst ) const {
 		surface::blit_to( p_dst );
 	}
 }; // class surface_view
@@ -134,21 +133,6 @@ public:
 	san::surface * p_surface = nullptr;
 
 	if ( p_image ) {
-
-		// I don't care of alignment unless i using load-from-memory SIMD instructions.
-#if 0
-		printf( "p_image = %p\n", p_image );
-		printf( "TODO: check pointer alignment of 'stbi_load'!\n" );
-
-		uintptr_t p = uintptr_t(p_image);
-		int alignment = 1;
-		while ( !(p & 1) ) {
-			alignment <<= 1;
-			p >>= 1;
-		}
-		printf( "p_image align.: %d\n", alignment );
-#endif
-
 		p_surface = new (std::nothrow) san::surface( p_image, src_w, src_h, src_w * 4, 4 );
 		if ( !p_surface ) {
 			fprintf( stderr, "Couldn't create surface.\n" );

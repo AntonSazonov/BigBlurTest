@@ -28,10 +28,10 @@ add_subdirectory( src/cpu_features )
 add_executable( ${BBT_PROJECT_NAME}
 	BigBlurTest.cpp
 
-	src/stb/stb_image.h
-	#src/stb/stb_image_resize.h
 	src/stb_impl.hpp
 	src/stb_impl.cpp
+	src/stb/stb_image.h
+	src/stb/stb_image_resize.h
 
 	src/agg/agg_array.h
 	src/agg/agg_basics.h
@@ -57,7 +57,7 @@ add_executable( ${BBT_PROJECT_NAME}
 	src/ui/san_ui_ctrl_checkbox.hpp
 	src/ui/san_ui_ctrl_text.hpp
 	src/ui/san_ui_ctrl_link.hpp
-	#src/ui/san_ui_ctrl_slider.hpp
+	src/ui/san_ui_ctrl_slider.hpp
 
 	src/san_blur_line_adaptor.hpp
 	src/san_blur_gaussian_naive.hpp
@@ -70,12 +70,7 @@ add_executable( ${BBT_PROJECT_NAME}
 	src/san_blur_stack_simd_optimized_2.hpp )
 
 target_precompile_headers( ${BBT_PROJECT_NAME} PUBLIC
-	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_color_rgba.h$<ANGLE-R>>"
-	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_blur.h$<ANGLE-R>>"
-	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_array.h$<ANGLE-R>>"
-	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_basics.h$<ANGLE-R>>"
-	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_config.h$<ANGLE-R>>"
-	"$<$<COMPILE_LANGUAGE:CXX>:<src/agg/agg_pixfmt_transposer.h$<ANGLE-R>>" )
+	"$<$<COMPILE_LANGUAGE:CXX>:<src/san_pch.hpp$<ANGLE-R>>" )
 
 # -march=native -Ofast -ffast-math -funroll-loops -fno-exceptions -fno-rtti ) # -Wextra -Wpedantic
 set( GNU_AND_CLANG_COMMON_COMP_OPTS -mavx2 -Wall -fno-exceptions -fno-rtti )
@@ -91,8 +86,8 @@ elseif( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
 	target_compile_options( ${BBT_PROJECT_NAME} PRIVATE ${GNU_AND_CLANG_COMMON_COMP_OPTS} ) # -Wno-class-memaccess
 	target_link_options   ( ${BBT_PROJECT_NAME} PRIVATE ${GNU_AND_CLANG_COMMON_LINK_OPTS} )
 
-elseif( CMAKE_CXX_COMPILER_ID STREQUAL "Intel" )
-	# not tested
+#elseif( CMAKE_CXX_COMPILER_ID STREQUAL "Intel" )
+# not tested
 
 elseif( CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" )
 	set( CMAKE_CXX_FLAGS_DEBUG "/O1 ${CMAKE_CXX_FLAGS_DEBUG}" )

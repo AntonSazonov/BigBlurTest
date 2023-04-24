@@ -5,20 +5,11 @@
 
 #pragma once
 
-#include <cassert>
-#include <memory>
-#include <queue>
-#include <atomic>
-#include <functional>
-#include <mutex>
-#include <condition_variable>
-#include <thread>
-
 namespace san {
 
 class parallel_for {
-	int									m_num_threads;
-	std::unique_ptr <std::thread[]>		m_threads;
+	int									m_size;
+	std::unique_ptr <std::thread[]>		m_workers;
 
 	std::atomic <bool>					m_running		= false;
 	std::atomic <bool>					m_waiting		= false;
@@ -40,8 +31,7 @@ class parallel_for {
 			m_task_available_cv.wait( tasks_lock, [this]{ return !m_tasks.empty() || !m_running; } );
 
 			if ( m_running ) {
-				std::function <void()> task = std::move( m_tasks.front() );
-
+				std::function <void()> task( std::move( m_tasks.front() ) );
 				m_tasks.pop();
 
 				tasks_lock.unlock();
@@ -57,18 +47,16 @@ class parallel_for {
 	}
 
 public:
-	parallel_for( uint32_t n_threads = 0 ) : m_num_threads( n_threads ) {
-		if ( !m_num_threads ) m_num_threads = std::thread::hardware_concurrency();
-		assert( m_num_threads > 0 );
+	parallel_for( int n_threads = std::thread::hardware_concurrency() )
+		: m_size( n_threads )
+		, m_workers( new (std::nothrow) std::thread [m_size] )
+	{
+		assert( !!m_workers );
+		assert( m_size > 0 );
 
-#ifndef NDEBUG
-		std::printf( "%s: %d threads created.\n", __FUNCTION__, m_num_threads );
-#endif
-
-		m_threads = std::make_unique<std::thread[]>( m_num_threads );
 		m_running = true;
-		for ( int i = 0; i < m_num_threads; i++ ) {
-			m_threads[i] = std::thread( &parallel_for::worker, this );
+		for ( int i = 0; i < m_size; i++ ) {
+			m_workers[i] = std::thread( &parallel_for::worker, this );
 		}
 	}
 
@@ -76,12 +64,12 @@ public:
 		wait();
 		m_running = false;
 		m_task_available_cv.notify_all();
-		for ( int i = 0; i < m_num_threads; ++i ) {
-			m_threads[i].join();
+		for ( int i = 0; i < m_size; ++i ) {
+			m_workers[i].join();
 		}
 	}
 
-	int num_threads() const { return m_num_threads; }
+	int num_threads() const { return m_size; }
 
 	void wait() {
 		m_waiting = true;
@@ -94,7 +82,7 @@ public:
 	void run( int beg, int end, F && f, int override_num_threads = 0 ) {
 		if ( beg >= end ) return;
 
-		int n_threads = override_num_threads > 0 ? override_num_threads : m_num_threads;
+		int n_threads = override_num_threads > 0 ? override_num_threads : m_size;
 
 		int total_size	= end - beg;
 		int block_size	= total_size / n_threads;

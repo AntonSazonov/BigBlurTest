@@ -1,7 +1,6 @@
 #pragma once
 
 #include "cpu_features/include/cpuinfo_x86.h"
-#include <string>
 
 namespace san::cpu {
 
@@ -17,7 +16,7 @@ public:
 
 	std::string CPU() const {
 		std::string name( m_info.brand_string );
-		name.erase( name.find_last_not_of( " " ) + 1 ); // Remove trailing spaces
+		name.erase( name.find_last_not_of( ' ' ) + 1 ); // Remove trailing spaces
 		return name;
 	}
 

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstdint>
-
 namespace san::blur::stack {
 
 const uint16_t lut_mul[255] = {

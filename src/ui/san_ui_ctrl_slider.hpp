@@ -34,7 +34,7 @@ public:
 
 
 class slider : public control {
-	bool						m_is_lbutton_down	= false;
+//	bool						m_is_lbutton_down	= false;
 	bool						m_is_hovered		= false;
 
 	std::function <void(float)>	m_callback;
@@ -47,7 +47,6 @@ class slider : public control {
 	float						m_half_h;		// Half of height
 	BLRect						m_midline;
 
-	float						m_value;
 	float						m_value_min;
 	float						m_value_max;
 
@@ -71,7 +70,6 @@ public:
 		//, m_name( name )
 		//, m_font( p_ctx->font_sans() )
 		//, m_text_size( fit_to_string( m_font, m_name.c_str(), m_font_scale ) )
-		, m_value( value )
 		, m_value_min( min )
 		, m_value_max( max )
 		, m_spot_x( m_spot.cx )

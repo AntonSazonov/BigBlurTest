@@ -17,8 +17,7 @@ public:
 	}
 
 	void operator = ( const T & value ) {
-		m_value = value < m_min ? m_min :
-				 (value > m_max ? m_max : value);
+		m_value = std::clamp( value, m_min, m_max );
 	}
 
 	void map_from( T value, T min, T max ) {

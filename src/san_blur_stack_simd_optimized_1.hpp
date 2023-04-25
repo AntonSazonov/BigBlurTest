@@ -80,7 +80,7 @@ class optimized_1 {
 
 public:
 	template <typename ImageViewT, typename ParallelForT>
-	void blur( ImageViewT & image, ParallelForT & parallel_for, int radius, int override_num_threads ) {
+	void operator () ( ImageViewT & image, ParallelForT & parallel_for, int radius, int override_num_threads ) {
 		if ( radius < 1 ) return;
 		if ( radius > 254 ) radius = 254;
 

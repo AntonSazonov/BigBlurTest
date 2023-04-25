@@ -212,7 +212,7 @@ namespace agg
 
         //--------------------------------------------------------------------
 		template <typename Img, typename ParallelForT>
-		void blur( Img & img, ParallelForT & parallel_for, int radius, int override_num_threads )
+		void operator () ( Img & img, ParallelForT & parallel_for, int radius, int override_num_threads )
         {
             blur_x(img, parallel_for, radius, override_num_threads );
             pixfmt_transposer<Img> img2(img);
@@ -688,7 +688,7 @@ namespace agg
 
         //--------------------------------------------------------------------
 		template <typename Img, typename ParallelForT>
-		void blur( Img & img, ParallelForT & parallel_for, double radius, int override_num_threads ) {
+		void operator () ( Img & img, ParallelForT & parallel_for, double radius, int override_num_threads ) {
             blur_x( img, parallel_for, radius, override_num_threads );
             pixfmt_transposer <Img> img2( img );
             blur_x( img2, parallel_for, radius, override_num_threads );

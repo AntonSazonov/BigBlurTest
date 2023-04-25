@@ -2,7 +2,10 @@
 
 namespace san::blur::recursive {
 
-template <typename ValueT = double>
+// std::common_type<T, U>::type
+// std::common_type<int, double>::type == double
+
+template <typename ValueT = float>
 struct naive_calc_t {
 	using	value_type	= ValueT;
 
@@ -30,78 +33,42 @@ struct naive_calc_t {
 	}
 }; // struct naive_calc_t
 
-#if 0
-    //=================================================recursive_blur_calc_rgba
-    template<class T=double> struct recursive_blur_calc_rgba
-    {
-        typedef T value_type;
-        typedef recursive_blur_calc_rgba<T> self_type;
-
-        value_type r,g,b,a;
-
-        template<class ColorT> 
-        AGG_INLINE void from_pix(const ColorT& c) {
-            r = c.r;
-            g = c.g;
-            b = c.b;
-            a = c.a;
-        }
-
-        AGG_INLINE void calc(value_type b1, 
-                             value_type b2, 
-                             value_type b3, 
-                             value_type b4,
-                             const self_type& c1, 
-                             const self_type& c2, 
-                             const self_type& c3, 
-                             const self_type& c4)
-        {
-            r = b1*c1.r + b2*c2.r + b3*c3.r + b4*c4.r;
-            g = b1*c1.g + b2*c2.g + b3*c3.g + b4*c4.g;
-            b = b1*c1.b + b2*c2.b + b3*c3.b + b4*c4.b;
-            a = b1*c1.a + b2*c2.a + b3*c3.a + b4*c4.a;
-        }
-
-        template<class ColorT> 
-        AGG_INLINE void to_pix(ColorT& c) const
-        {
-            typedef typename ColorT::value_type cv_type;
-            c.r = (cv_type)uround(r);
-            c.g = (cv_type)uround(g);
-            c.b = (cv_type)uround(b);
-            c.a = (cv_type)uround(a);
-        }
-    };
-#endif
-
 template <typename CalcT = naive_calc_t<>>
 class naive {
-public:
 	using	value_type	= typename CalcT::value_type;
-	//naive() {}
 
+	void calc_coefficients( value_type radius, value_type & c, value_type & c1, value_type & c2, value_type & c3 ) {
+		value_type s = radius * 0.5f;
+
+		value_type q1  = s < 2.5f
+			? 3.97156f - 4.14554f * std::sqrt( 1 - 0.26891f * s )
+			: 0.98711f * s - 0.96330f;
+
+		value_type q2 = q1 * q1;
+		value_type q3 = q2 * q1;
+
+		value_type c0;
+		c0 = 1.57825f + 2.44413f * q1 +  1.42810f * q2 +  0.422205f * q3;
+		c1 =            2.44413f * q1 +  2.85619f * q2 +  1.266610f * q3;
+		c2 =                            -1.42810f * q2 + -1.266610f * q3;
+		c3 =                                              0.422205f * q3;
+
+		c   = 1 - (c1 + c2 + c3) / c0;
+		c1 /= c0;
+		c2 /= c0;
+		c3 /= c0;
+	}
+
+public:
 	template <typename ImageViewT, typename ParallelForT>
 	void operator () ( ImageViewT & image, ParallelForT & parallel_for, value_type radius, int override_num_threads ) {
 
 		if ( image.width() < 3 ) return;
-		if ( radius < .62f ) return;
+		if ( radius < 0.62f ) return;
 		//if ( radius > 120 ) radius = 120;
 
-		value_type s = radius * .5f;
-		value_type q  = (s < 2.5) ? 3.97156f - 4.14554f * std::sqrt( 1 - .26891f * s ) : .98711f * s - .96330f;
-		value_type q2 = q  * q;
-		value_type q3 = q2 * q;
-
-		value_type b0 = 1.f / (1.578250f + 2.444130f * q + 1.428100f * q2 + .422205f * q3);
-
-		value_type b1 = 2.44413f * q + 2.85619f * q2 + 1.26661f * q3;
-		value_type b2 = -1.42810f * q2 + -1.26661f * q3;
-		value_type b3 = .422205f * q3;
-		value_type b  = 1 - (b1 + b2 + b3) * b0;
-
-		b1 *= b0;
-		b2 *= b0;
-		b3 *= b0;
+		value_type b, b1, b2, b3;
+		calc_coefficients( radius, b, b1, b2, b3 );
 
 		int w = image.width();
 		int h = image.height();
@@ -113,6 +80,7 @@ public:
 
 		for ( int y = 0; y < h; y++ ) {
 			CalcT c;
+
 
 			c.from_pix( *((uint32_t *)image.pix_ptr( 0, y )) );
 			m_sum1[0].calc( b, b1, b2, b3, c, c, c, c );
@@ -127,6 +95,7 @@ public:
 				c.from_pix( *((uint32_t *)image.pix_ptr( x, y )) );
 				m_sum1[x].calc( b, b1, b2, b3, c, m_sum1[x - 1], m_sum1[x - 2], m_sum1[x - 3] );
 			}
+
 
 			m_sum2[wm    ].calc( b, b1, b2, b3, m_sum1[wm    ], m_sum1[wm    ], m_sum1[wm], m_sum1[wm] );
 			m_sum2[wm - 1].calc( b, b1, b2, b3, m_sum1[wm - 1], m_sum2[wm    ], m_sum2[wm], m_sum2[wm] );

@@ -98,21 +98,18 @@ public:
 		// Add UI algorithms buttons...
 		int y = 10;
 		for ( const auto & p : m_impls ) {
-			m_ui.add<san::ui::button>( BLPoint{ 10, double(y) }, p.first, [&]{ std::printf( "Benchmark start...\n" ); start_benchmark( p ); } );
+			m_ui.add<san::ui::button>( BLPoint{ 10, double(y) }, p.first, [&]{ /*std::printf( "Benchmark start...\n" );*/ start_benchmark( p ); } );
 			y += 40;
 		}
 		//m_ui.add<san::ui::checkbox>( BLPoint{ 10, double(y) }, "Bench on original size image", [&]( bool value ){ printf( "Checkbox: %d\n", int(value) ); /*m_bench_on_original_size = value;*/ }, false );
 
-		m_ui.add<san::ui::slider>( BLRect{ 500, 10, 400, 30 }, []( float value ){ std::printf( "Slider: %.1f\n", value ); }, 16, 0, 64 );
+		m_ui.add<san::ui::slider>( BLRect{ 500, 10, 400, 30 }, [&]( float value ){ m_radius = value;/*std::printf( "Slider: %.1f\n", value );*/ }, 127/*initial*/, 0/*min*/, 254/*max*/ );
 	}
 
-
-	int m_mouse_x = -1;
-	int m_mouse_y = -1;
+	float	m_radius = 0;
 
 	void on_mouse_motion( int x, int y ) override {
 		m_ui.on_mouse_motion( x, y );
-		m_mouse_x = x;
 	}
 
 	void on_mouse_button( int x, int y, san::mouse_button_e button, bool pressed ) override {
@@ -183,10 +180,10 @@ public:
 #if 1
 			//san::blur::gaussian::naive_test <32> gaussian;
 			//gaussian.blur( m_surface_view_san, m_parallel_for, m_mouse_x, 0/*max. threads*/ );
-			if ( m_bench_func ) m_bench_func( m_mouse_x, 0 );
+			if ( m_bench_func ) m_bench_func( m_radius, 0 );
 #else
 			agg::recursive_blur	<agg::rgba8, agg::recursive_blur_calc_rgba<double>>	agg_recursive_blur;
-			agg_recursive_blur.blur( m_surface_view_agg, m_parallel_for, m_mouse_x, 0/*max. threads*/ );
+			agg_recursive_blur.blur( m_surface_view_agg, m_parallel_for, m_radius, 0/*max. threads*/ );
 #endif
 #endif
 		}

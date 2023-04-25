@@ -3,7 +3,7 @@
 namespace san::blur::stack::simd {
 
 template <typename SIMDCalcT>
-void naive_line_process( ::san::blur::line_adaptor & line, int beg, int end/*exclusive*/, int radius ) {
+void naive_line_process( adaptor::straight_line & line, int beg, int end/*exclusive*/, int radius ) {
 	int div = radius * 2 + 1;
 	uint32_t * p_stack = (uint32_t *)SAN_STACK_ALLOC( sizeof( uint32_t ) * div );
 
@@ -56,7 +56,7 @@ void naive( san::surface_view & image, ParallelForT & parallel_for, int radius, 
 	// Horizontal pass...
 	parallel_for.run_and_wait( 0, image.height(), [&]( int a, int b ) {
 		for ( int y = a; y < b; y++ ) {
-			::san::blur::line_adaptor line( (uint32_t *)image.row_ptr( y ), image.width(), 1 );
+			adaptor::straight_line line( (uint32_t *)image.row_ptr( y ), image.width(), 1 );
 			naive_line_process<SIMDCalcT>( line, 0, image.width(), radius );
 		}
 	}, override_num_threads );
@@ -64,7 +64,7 @@ void naive( san::surface_view & image, ParallelForT & parallel_for, int radius, 
 	// Vertical pass...
 	parallel_for.run_and_wait( 0, image.width(), [&]( int a, int b ) {
 		for ( int x = a; x < b; x++ ) {
-			::san::blur::line_adaptor line( (uint32_t *)image.col_ptr( x ), image.height(), image.stride() / image.components() );
+			adaptor::straight_line line( (uint32_t *)image.col_ptr( x ), image.height(), image.stride() / image.components() );
 			naive_line_process<SIMDCalcT>( line, 0, image.height(), radius );
 		}
 	}, override_num_threads );

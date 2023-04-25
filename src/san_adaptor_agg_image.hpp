@@ -1,9 +1,9 @@
 #pragma once
 
-namespace san {
+namespace san::adaptor {
 
-class agg_image_adaptor {
-	surface_view &	m_image;
+class agg_image {
+	san::surface_view &	m_image;
 
 	// Bounds
 	int				m_x = 0;
@@ -19,7 +19,7 @@ public:
 
 	enum order_type { B = 0, G, R, A };
 
-	agg_image_adaptor( surface_view & iv )
+	agg_image( surface_view & iv )
 		: m_image( iv )
 		, m_w( m_image.width() )
 		, m_h( m_image.height() ) {}
@@ -86,6 +86,6 @@ public:
 			p += m_image.stride();
 		} while ( --len );
 	}
-}; // class agg_image_adaptor
+}; // class agg_image
 
-} // namespace san
+} // namespace san::adaptor

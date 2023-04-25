@@ -48,7 +48,7 @@ add_executable( ${BBT_PROJECT_NAME}
 	src/san_surface.hpp
 	src/san_image_list.hpp
 	src/san_impls_list.hpp
-	src/san_agg_image_adaptor.hpp
+	src/san_adaptor_agg_image.hpp
 
 	src/ui/san_ui.hpp
 	#src/ui/san_ui_console.hpp
@@ -59,7 +59,7 @@ add_executable( ${BBT_PROJECT_NAME}
 	src/ui/san_ui_ctrl_link.hpp
 	src/ui/san_ui_ctrl_slider.hpp
 
-	src/san_blur_line_adaptor.hpp
+	src/san_adaptor_straight_line.hpp
 	src/san_blur_gaussian_naive.hpp
 	src/san_blur_stack_luts.hpp
 	src/san_blur_stack_naive.hpp

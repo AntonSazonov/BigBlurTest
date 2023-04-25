@@ -118,8 +118,8 @@ public:
 
 		m_radius = radius;
 		m_div = radius * 2 + 1;
-		m_mul = ::san::blur::stack::lut_mul[radius];
-		m_shr = ::san::blur::stack::lut_shr[radius];
+		m_mul = lut_mul[radius];
+		m_shr = lut_shr[radius];
 
 		// Horizontal pass...
 		parallel_for.run_and_wait( 0, image.height(), [&]( int a, int b ) {

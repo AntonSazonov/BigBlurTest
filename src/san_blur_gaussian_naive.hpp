@@ -58,7 +58,7 @@ class naive {
 	KernelT &	m_kernel;
 	using		value_type = typename KernelT::value_type;
 
-	void do_line( ::san::blur::line_adaptor & line, int beg, int end, int radius ) {
+	void do_line( adaptor::straight_line & line, int beg, int end, int radius ) {
 
 		int			len = end - beg;
 
@@ -109,7 +109,7 @@ public:
 		// Horizontal pass...
 		parallel_for.run_and_wait( 0, image.height(), [&]( int beg, int end ) {
 			for ( int i = beg; i < end; i++ ) {
-				::san::blur::line_adaptor line( (uint32_t *)image.row_ptr( i ), image.width(), 1 );
+				adaptor::straight_line line( (uint32_t *)image.row_ptr( i ), image.width(), 1 );
 				do_line( line, 0, image.width(), m_kernel.radius() );
 			}
 		}, override_num_threads );
@@ -117,7 +117,7 @@ public:
 		// Vertical pass...
 		parallel_for.run_and_wait( 0, image.width(), [&]( int beg, int end ) {
 			for ( int i = beg; i < end; i++ ) {
-				::san::blur::line_adaptor line( (uint32_t *)image.col_ptr( i ), image.height(), image.stride() / image.components() );
+				adaptor::straight_line line( (uint32_t *)image.col_ptr( i ), image.height(), image.stride() / image.components() );
 				do_line( line, 0, image.height(), m_kernel.radius() );
 			}
 		}, override_num_threads );
@@ -125,7 +125,7 @@ public:
 }; // class naive
 
 
-// Very slow implementation. Will be used as reference.
+// Very slow implementation
 template <size_t MaxRadius>
 class naive_test {
 	kernel <MaxRadius>			m_kernel;

@@ -14,7 +14,7 @@
  #include "platform/san_window_win32.hpp"
 #endif
 
-#include "san_blur_line_adaptor.hpp"			// Common line adaptor for naive implementations
+#include "san_adaptor_straight_line.hpp"		// Common line adaptor
 #include "san_blur_gaussian_naive.hpp"			// Gaussian blur naive impl.
 
 #include "san_blur_recursive_naive.hpp"			// ...
@@ -30,7 +30,7 @@
 #include "san_blur_stack_simd_optimized_1.hpp"	// Optimized versions with LUTs
 #include "san_blur_stack_simd_optimized_2.hpp"
 
-#include "san_agg_image_adaptor.hpp"
+#include "san_adaptor_agg_image.hpp"
 #include "san_parallel_for.hpp"
 
 #include "san_image_list.hpp"
@@ -52,7 +52,7 @@ class app final : public san::window {
 	std::shared_ptr <san::surface>	m_backbuffer_copy;	// For scaled image
 
 	san::surface_view				m_surface_view_san;	// View of window's surface
-	san::agg_image_adaptor			m_surface_view_agg;	// Image view adaptor for AGG implementations
+	san::adaptor::agg_image			m_surface_view_agg;	// Image view adaptor for AGG implementations
 
 	san::parallel_for				m_parallel_for;
 	san::ui::ui <san::ui::control>	m_ui;

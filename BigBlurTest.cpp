@@ -103,7 +103,9 @@ public:
 		}
 		//m_ui.add<san::ui::checkbox>( BLPoint{ 10, double(y) }, "Bench on original size image", [&]( bool value ){ printf( "Checkbox: %d\n", int(value) ); /*m_bench_on_original_size = value;*/ }, false );
 
-		m_ui.add<san::ui::slider>( BLRect{ 500, 10, 400, 30 }, [&]( float value ){ m_radius = value;/*std::printf( "Slider: %.1f\n", value );*/ }, 127/*initial*/, 0/*min*/, 254/*max*/ );
+		m_ui.add<san::ui::slider>( BLRect{ 500, 10, 400, 30 }, [&]( float value ){ m_radius = value;/*std::printf( "Slider: %.1f\n", value );*/ }, 16/*initial*/, 0/*min*/, 254/*max*/ );
+
+		m_bench_func = m_impls.begin()->second;
 	}
 
 	float	m_radius = 0;

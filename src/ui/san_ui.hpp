@@ -28,17 +28,6 @@ class ui : public BLContext {
 		return true;
 	}
 
-	ControlBaseT * find_first_by_point( const BLPoint & xy ) {
-		// Process controls in reverse order...
-		for ( auto it = m_controls.rbegin(), end = m_controls.rend(); it != end; ++it ) {
-			ControlBaseT * p_ctl = *it;
-			if ( p_ctl->is_point_inside( xy ) ) {
-				return p_ctl;
-			}
-		}
-		return nullptr;
-	}
-
 public:
 	ui( san::surface_view & image, const std::string & path_fonts, float font_size = 32. ) : m_font_size( font_size ) {
 		m_image.createFromData( image.width(), image.height(), BL_FORMAT_PRGB32 /*BL_FORMAT_XRGB32*/, image.ptr(), image.stride() );
@@ -69,44 +58,36 @@ public:
 	void on_mouse_motion( int x, int y ) {
 		BLPoint xy( x, y );
 
-		ControlBaseT * p_ctl = find_first_by_point( xy );
-		if ( p_ctl ) {
-			if ( p_ctl != m_hover ) {
+		// Process controls in reverse order...
+		for ( auto it = m_controls.rbegin(), end = m_controls.rend(); it != end; ++it ) {
+			ControlBaseT * p_ctl = *it;
+			bool inside = p_ctl->is_inside( xy );
 
-				// In case of overlapped controls...
-				if ( m_hover ) {
-					m_hover->on_mouse_leave( xy );
-				}
+			if ( m_hover == p_ctl && !inside ) {
+				m_hover->on_mouse_leave( xy );
+				m_hover = nullptr;
+			}
 
-				// Enter another control...
+			if ( m_hover != p_ctl && inside ) {
 				p_ctl->on_mouse_enter( xy );
 				m_hover = p_ctl;
+
 			}
 
 			p_ctl->on_mouse_motion( xy );
-			return;
-		}
-
-		// ...
-		// Pointer doesn't hits any control...
-		// ...
-
-		// Leave last hovered...
-		if ( m_hover ) {
-			m_hover->on_mouse_leave( xy );
-			m_hover = nullptr;
 		}
 	}
 
 	void on_mouse_button( int x, int y, san::mouse_button_e button, bool pressed ) {
 		BLPoint xy( x, y );
-		ControlBaseT * p_ctl = find_first_by_point( xy );
-		if ( p_ctl ) {
-			m_focus = p_ctl; // Set focus on control
 
-			// Move control to top (end of list)...
-			//m_controls.erase( std::next( it ).base() );
-			//m_controls.push_back( p_ctl );
+		// Process controls in reverse order...
+		for ( auto it = m_controls.rbegin(), end = m_controls.rend(); it != end; ++it ) {
+			ControlBaseT * p_ctl = *it;
+
+			if ( m_focus != p_ctl && p_ctl->is_inside( xy ) ) {
+				m_focus = p_ctl; // Set focus on control
+			}
 
 			p_ctl->on_mouse_button( xy, button, pressed );
 		}
@@ -179,7 +160,7 @@ public:
 
 		// BLResult BLContext::save()
 		// BLResult BLContext::restore()
-		BLContext::scale( m_scale.x, m_scale.y );
+		//BLContext::scale( m_scale.x, m_scale.y );
 
 		for ( ControlBaseT * p_ctl : m_controls ) {
 			if ( p_ctl->is_visible() ) {

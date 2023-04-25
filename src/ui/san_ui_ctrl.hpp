@@ -45,7 +45,7 @@ public:
 			m_rect.y + m_rect.h - 1 );
 	}
 
-	bool is_point_inside( const BLPoint & pt ) const { 	return bbox().contains( pt ); }
+	bool is_inside( const BLPoint & pt ) const { return bbox().contains( pt ); }
 	bool is_visible() const { return m_visible; }
 
 	void show() { m_visible =  true; }

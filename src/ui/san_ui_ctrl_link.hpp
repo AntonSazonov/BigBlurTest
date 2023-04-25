@@ -28,7 +28,8 @@ public:
 		m_rect.h += expand;
 	}
 
-	void on_mouse_button( const BLPoint &, mouse_button_e button, bool is_pressed ) override {
+	void on_mouse_button( const BLPoint & pt, mouse_button_e button, bool is_pressed ) override {
+		if ( !control::is_inside( pt ) ) return;
 
 		// If: button is left && current state is up && previous state is down...
 		if ( button == mouse_button_e::left && !is_pressed && m_is_lbutton_down ) {

@@ -8,6 +8,7 @@ z
 Debug
 Release
 deprecated
+_*.
 _gdb.cmd
 san_cmake_config.hpp
 *.pdf

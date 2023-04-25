@@ -51,8 +51,7 @@ Thus, 8 iterations / 3 threads = 3 threads with 2 iterations + 2 remained iterat
 TODO:
  * Recursive Blur SIMD version
  * Gaussian Blur SIMD version
- * Get rid of SDL2?
- * Run tests in separate thread
+ * Run tests in separate thread?
 <br/><br/>
 
 Example on Youtube (need to be updated):

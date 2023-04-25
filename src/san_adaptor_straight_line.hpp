@@ -26,7 +26,7 @@ public:
 	}
 
 
-	// Write functions that can speed up
+	// This can speed up sequential writes...
 	// 'set_pix_start' should be used with 'set_pix_next' or not used at all
 	void set_pix_start( int i ) {
 		m_ptr_start = m_ptr + i * m_advance;

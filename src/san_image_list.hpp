@@ -10,7 +10,7 @@ public:
 	image_list( const std::string & path = "./pics/" ) {
 
 		if ( !std::filesystem::exists( path ) ) {
-			fprintf( stderr, "The path '%s' doesn't exist.\n", path.c_str() );
+			std::fprintf( stderr, "The path '%s' doesn't exist.\n", path.c_str() );
 			return;
 		}
 

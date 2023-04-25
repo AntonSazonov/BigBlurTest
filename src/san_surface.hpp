@@ -127,7 +127,7 @@ public:
 	int channels	= 0; // will be actual image channels, it is not set to desired.
 	uint8_t * p_image = stbi_load( filename, &src_w, &src_h, &channels, 4/*desired_channels*/ );
 	if ( !p_image ) {
-		fprintf( stderr, "stbi_load(): error.\n" );
+		std::fprintf( stderr, "stbi_load(): error.\n" );
 	}
 
 	san::surface * p_surface = nullptr;
@@ -135,7 +135,7 @@ public:
 	if ( p_image ) {
 		p_surface = new (std::nothrow) san::surface( p_image, src_w, src_h, src_w * 4, 4 );
 		if ( !p_surface ) {
-			fprintf( stderr, "Couldn't create surface.\n" );
+			std::fprintf( stderr, "Couldn't create surface.\n" );
 			stbi_image_free( p_image );
 		} else {
 			p_surface->swap_components( 0, 2 );

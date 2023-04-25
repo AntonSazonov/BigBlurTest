@@ -16,6 +16,9 @@
 
 #include "san_blur_line_adaptor.hpp"			// Common line adaptor for naive implementations
 #include "san_blur_gaussian_naive.hpp"			// Gaussian blur naive impl.
+
+#include "san_blur_recursive_naive.hpp"			// ...
+
 #include "san_blur_stack_luts.hpp"				// Lookup tables common for all stack blur impls.
 
 #include "san_blur_stack_naive_calc.hpp"		// Naive stack blur impl.
@@ -101,9 +104,9 @@ public:
 			m_ui.add<san::ui::button>( BLPoint{ 10, double(y) }, p.first, [&]{ /*std::printf( "Benchmark start...\n" );*/ start_benchmark( p ); } );
 			y += 40;
 		}
-		//m_ui.add<san::ui::checkbox>( BLPoint{ 10, double(y) }, "Bench on original size image", [&]( bool value ){ printf( "Checkbox: %d\n", int(value) ); /*m_bench_on_original_size = value;*/ }, false );
+		//m_ui.add<san::ui::checkbox>( BLPoint{ 10, double(y) }, "Bench on original size image", [&]( bool value ){ std::printf( "Checkbox: %d\n", int(value) ); /*m_bench_on_original_size = value;*/ }, false );
 
-		m_ui.add<san::ui::slider>( BLRect{ 500, 10, 400, 30 }, [&]( float value ){ m_radius = value;/*std::printf( "Slider: %.1f\n", value );*/ }, 16/*initial*/, 0/*min*/, 254/*max*/ );
+		m_ui.add<san::ui::slider>( BLRect{ 500, 10, 400, 30 }, [&]( float value ){ m_radius = value; std::printf( "\rRadius: %6.1f", value ); }, 16/*initial*/, 0/*min*/, 2048/*max*/ );
 
 		m_bench_func = m_impls.begin()->second;
 	}
@@ -156,6 +159,7 @@ public:
 		m_bench_name = pair.first;
 		m_bench_func = pair.second;
 
+		std::printf( "\n" );
 		return; // DEBUG!!!
 
 		std::printf( "\nBenchmarking (%d ms.): %s \n", m_bench_time_ms, m_bench_name.c_str() );

@@ -62,9 +62,14 @@
 
 
 #if defined( SAN_COMPILER_MSC )
+
+ // The allocated space is automatically freed when the calling function exits (not when the allocation merely passes out of scope).
  #define SAN_STACK_ALLOC( size )	_alloca( size )
 
+
 #elif defined( SAN_COMPILER_GNU ) || defined( SAN_COMPILER_CLANG )
+
+ // The lifetime of the allocated object ends just before the calling function returns to its caller. This is so even when __builtin_alloca is called within a nested block.
  #define SAN_STACK_ALLOC( size )	__builtin_alloca( size )
 
 #else

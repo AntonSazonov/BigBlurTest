@@ -50,6 +50,19 @@ public:
 		}
 	}
 
+	void generate_pattern( int w, int h, uint32_t (*generator)( int, int ) ) {
+		std::shared_ptr <san::surface> pattern( new (std::nothrow) san::surface( w, h, 4 ) );
+
+		for ( int y = 0; y < pattern->height(); y++ ) {
+			for ( int x = 0; x < pattern->width(); x++ ) {
+				uint32_t * p = reinterpret_cast<uint32_t *>( pattern->pix_ptr( x, y ) );
+				*p = generator( x, y );
+			}
+		}
+
+		m_images.push_back( pattern );
+	}
+
 }; // class image_list
 
 } // namespace san

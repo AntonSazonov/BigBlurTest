@@ -76,11 +76,11 @@ public:
 		//san::ui::console & con = m_ui.console();
 		//con.add_command( "Exit", "Exit program.", [&](){ san::window::quit(); } );
 
-		// At least one image must be loaded
-		if ( !m_image_list ) {
-			san::window::quit();
-			return;
-		}
+		// Generate chess pattern...
+		m_image_list.generate_pattern( width, height,
+			[]( int x, int y ) -> uint32_t {
+				return  ((x >> 6) + (y >> 6)) & 1 ? 0xffffffff : 0;
+			} );
 
 		// Blit current image...
 		m_image_list.current_image()->blit_to( m_backbuffer_copy );

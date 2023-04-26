@@ -90,7 +90,7 @@ public:
 			int h = m_surface_view_san.height() - 5;
 			m_ui.add<san::ui::link>   ( BLPoint( 10, h -= th ), "https://github.com/AntonSazonov/BigBlurTest" );
 			m_ui.add<san::ui::textbox>( BLPoint( 10, h -= th ), "Compile options: " + san::cmake::compile_opts() );
-			m_ui.add<san::ui::textbox>( BLPoint( 10, h -= th ), " SIMD supported: " + m_cpu_info.feats() );
+			m_ui.add<san::ui::textbox>( BLPoint( 10, h -= th ), "   CPU features: " + m_cpu_info.feats() );
 			m_ui.add<san::ui::textbox>( BLPoint( 10, h -= th ), "            CPU: " + m_cpu_info.brand() );
 			m_ui.add<san::ui::textbox>( BLPoint( 10, h -= th ), "       Compiler: " + san::cmake::compiler_id() );
 			m_ui.add<san::ui::textbox>( BLPoint( 10, h -= th ), "     Build type: " + san::cmake::build_type() );	

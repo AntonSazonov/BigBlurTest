@@ -71,7 +71,7 @@ target_precompile_headers( ${BBT_PROJECT_NAME} PUBLIC
 	"$<$<COMPILE_LANGUAGE:CXX>:<src/san_pch.hpp$<ANGLE-R>>" )
 
 # -march=native -Ofast -ffast-math -funroll-loops -fno-exceptions -fno-rtti ) # -Wextra -Wpedantic
-set( GNU_AND_CLANG_COMMON_COMP_OPTS -mavx2 -Wall -fno-exceptions -fno-rtti )
+set( GNU_AND_CLANG_COMMON_COMP_OPTS -Wall -mavx2 -fno-exceptions -fno-rtti )
 set( GNU_AND_CLANG_COMMON_LINK_OPTS -mconsole -s ) # -static
 
 if( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )

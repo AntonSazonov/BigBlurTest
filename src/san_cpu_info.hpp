@@ -21,7 +21,7 @@ class cpu_info {
 
 #define DEF_FEATURE( feat, fun, reg, bit ) { feat_e::feat, fun, reg, bit, #feat }
 
-	struct /*func_feat_t*/ {
+	struct {
 		feat_e		feat;
 		uint8_t		fun : 3;
 		reg_e		reg : 2;

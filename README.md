@@ -33,7 +33,7 @@ for ( int i = 0; i < 8; i++ ) ...
 And we want to break him into 3 threads.  
 Thus, 8 iterations / 3 threads = 3 threads with 2 iterations + 2 remained iterations.  
 
-### Old algorithm (remainder is added to last thread):
+### Old algorithm (remainder is added to the last thread):
  * Thread #1: [0;2)  - size 2 
  * Thread #2: [2;4)  - size 2
  * Thread #3: [4;8)  - size 4
@@ -51,8 +51,7 @@ Thus, 8 iterations / 3 threads = 3 threads with 2 iterations + 2 remained iterat
 TODO:
  * Recursive Blur SIMD version
  * Gaussian Blur SIMD version
- * Get rid of SDL2?
- * Run tests in separate thread
+ * Run tests in separate thread?
 <br/><br/>
 
 Example on Youtube (need to be updated):

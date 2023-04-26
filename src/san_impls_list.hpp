@@ -31,7 +31,7 @@ class impls_list {
 
 public:
 	impls_list(
-		san::cpu::features & cpu_features,
+		san::cpu_info & cpu_info,
 		san::surface_view & surface_view_san,
 		san::adaptor::agg_image & surface_view_agg,
 		san::parallel_for & a_parallel_for )
@@ -44,11 +44,11 @@ public:
 		EMPLACE_IMPL_CLASS( "san::blur::recursive::naive",						surface_view_san, m_recursive_naive )
 		EMPLACE_IMPL_FUNCT( "san::blur::stack::naive",							surface_view_san, (san::blur::stack::naive<san::blur::stack::naive_calc<>, san::parallel_for>) )
 
-		if ( cpu_features.SSE2() ) {
+		if ( cpu_info.sse2() ) {
 			EMPLACE_IMPL_FUNCT( "san::blur::stack::simd::naive (SSE2)",			surface_view_san, (san::blur::stack::simd::naive<simd_calc_sse2 , san::parallel_for>) )
 		}
 
-		if ( cpu_features.SSE41() ) {
+		if ( cpu_info.sse41() ) {
 			EMPLACE_IMPL_FUNCT( "san::blur::stack::simd::naive (SSE4.1)",		surface_view_san, (san::blur::stack::simd::naive<simd_calc_sse41, san::parallel_for>) )
 			EMPLACE_IMPL_CLASS( "san::blur::stack::simd::optimized_1 (SSE4.1)",	surface_view_san, m_san_opt_1 )
 			EMPLACE_IMPL_CLASS( "san::blur::stack::simd::optimized_2 (SSE4.1)",	surface_view_san, m_san_opt_2 )

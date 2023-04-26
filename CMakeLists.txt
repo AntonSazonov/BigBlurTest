@@ -22,9 +22,6 @@ set( CMAKE_CXX_STANDARD_REQUIRED ON )
 set( BLEND2D_STATIC TRUE )
 add_subdirectory( src/blend2d )
 
-set( BUILD_TESTING OFF )
-add_subdirectory( src/cpu_features )
-
 add_executable( ${BBT_PROJECT_NAME}
 	BigBlurTest.cpp
 
@@ -44,6 +41,7 @@ add_executable( ${BBT_PROJECT_NAME}
 	src/platform/san_window_base.hpp
 	src/platform/san_window_win32.hpp
 
+	src/san_cpu_info.hpp
 	src/san_parallel_for.hpp
 	src/san_surface.hpp
 	src/san_image_list.hpp
@@ -117,6 +115,6 @@ configure_file( ${CMAKE_SOURCE_DIR}/${SAN_CMAKE_CONFIG_FILE}.in ${CMAKE_SOURCE_D
 
 target_include_directories( ${BBT_PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR} )
 target_include_directories( ${BBT_PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src )
-target_link_libraries     ( ${BBT_PROJECT_NAME} PRIVATE blend2d::blend2d cpu_features )
+target_link_libraries     ( ${BBT_PROJECT_NAME} PRIVATE blend2d::blend2d )
 set_target_properties     ( ${BBT_PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR} )
 set_target_properties     ( ${BBT_PROJECT_NAME} PROPERTIES OUTPUT_NAME "${CMAKE_PROJECT_NAME}-${CMAKE_CXX_COMPILER_ID}-${CMAKE_BUILD_TYPE}" )

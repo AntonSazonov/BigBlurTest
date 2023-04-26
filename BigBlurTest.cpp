@@ -2,7 +2,7 @@
 #include "san_pch.hpp"
 
 #include "san_cmake_config.hpp"
-#include "san_cpu_features.hpp"
+#include "san_cpu_info.hpp"
 
 #include "stb_impl.hpp"
 #include "san_surface.hpp"
@@ -46,7 +46,7 @@
 #include "ui/san_ui_ctrl_slider.hpp"
 
 class app final : public san::window {
-	san::cpu::features				m_cpu_features;
+	san::cpu_info					m_cpu_info;
 
 	std::shared_ptr <san::surface>	m_backbuffer_copy;	// For scaled image
 
@@ -70,7 +70,7 @@ public:
 		, m_surface_view_san( san::window::get_surface_view() )
 		, m_surface_view_agg( m_surface_view_san )
 		, m_ui( m_surface_view_san, "./fonts", 36 )
-		, m_impls( m_cpu_features, m_surface_view_san, m_surface_view_agg, m_parallel_for )
+		, m_impls( m_cpu_info, m_surface_view_san, m_surface_view_agg, m_parallel_for )
 	{
 		// Console
 		//san::ui::console & con = m_ui.console();
@@ -90,8 +90,8 @@ public:
 			int h = m_surface_view_san.height() - 5;
 			m_ui.add<san::ui::link>   ( BLPoint{ 10, double(h-=th) }, "https://github.com/AntonSazonov/BigBlurTest" );
 			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "Compile options: " + san::cmake::compile_opts() );
-			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, " SIMD supported: " + m_cpu_features.SIMD() );
-			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "            CPU: " + m_cpu_features.CPU() );
+			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, " SIMD supported: " + m_cpu_info.feats() );
+			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "            CPU: " + m_cpu_info.brand() );
 			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "       Compiler: " + san::cmake::compiler_id() );
 			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "     Build type: " + san::cmake::build_type() );	
 			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "        Threads: " + std::to_string( m_parallel_for.num_threads() ) );

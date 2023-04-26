@@ -16,7 +16,7 @@ public:
 
 		// Load all JPEGs from diretory...
 		for ( auto & p : std::filesystem::recursive_directory_iterator( path ) ) {
-			if ( p.path().extension() == ".jpg" ) { // JPEGs only
+			if ( p.path().extension() == ".jpg" || p.path().extension() == ".png" ) { // JPEG and PNG only
 				std::printf( "Loading '%s'...\n", p.path().string().c_str() );
 				std::shared_ptr <surface> image = load_image( p.path().string().c_str() );
 				if ( image ) {

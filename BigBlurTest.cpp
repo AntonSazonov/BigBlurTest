@@ -88,25 +88,28 @@ public:
 		{ // Add some text...
 			const int th = 20;
 			int h = m_surface_view_san.height() - 5;
-			m_ui.add<san::ui::link>   ( BLPoint{ 10, double(h-=th) }, "https://github.com/AntonSazonov/BigBlurTest" );
-			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "Compile options: " + san::cmake::compile_opts() );
-			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, " SIMD supported: " + m_cpu_info.feats() );
-			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "            CPU: " + m_cpu_info.brand() );
-			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "       Compiler: " + san::cmake::compiler_id() );
-			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "     Build type: " + san::cmake::build_type() );	
-			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "        Threads: " + std::to_string( m_parallel_for.num_threads() ) );
-			m_ui.add<san::ui::textbox>( BLPoint{ 10, double(h-=th) }, "Use arrays <- and -> to change image." );
+			m_ui.add<san::ui::link>   ( BLPoint( 10, h -= th ), "https://github.com/AntonSazonov/BigBlurTest" );
+			m_ui.add<san::ui::textbox>( BLPoint( 10, h -= th ), "Compile options: " + san::cmake::compile_opts() );
+			m_ui.add<san::ui::textbox>( BLPoint( 10, h -= th ), " SIMD supported: " + m_cpu_info.feats() );
+			m_ui.add<san::ui::textbox>( BLPoint( 10, h -= th ), "            CPU: " + m_cpu_info.brand() );
+			m_ui.add<san::ui::textbox>( BLPoint( 10, h -= th ), "       Compiler: " + san::cmake::compiler_id() );
+			m_ui.add<san::ui::textbox>( BLPoint( 10, h -= th ), "     Build type: " + san::cmake::build_type() );	
+			m_ui.add<san::ui::textbox>( BLPoint( 10, h -= th ), "        Threads: " + std::to_string( m_parallel_for.num_threads() ) );
+			m_ui.add<san::ui::textbox>( BLPoint( 10, h -= th ), "Use arrays <- and -> to change image." );
 		}
 
 		// Add UI algorithms buttons...
 		int y = 10;
 		for ( const auto & p : m_impls ) {
-			m_ui.add<san::ui::button>( BLPoint{ 10, double(y) }, p.first, [&]{ /*std::printf( "Benchmark start...\n" );*/ start_benchmark( p ); } );
+			m_ui.add<san::ui::button>( BLPoint( 10, y ), p.first, [&]{ /*std::printf( "Benchmark start...\n" );*/ start_benchmark( p ); } );
 			y += 40;
 		}
 		//m_ui.add<san::ui::checkbox>( BLPoint{ 10, double(y) }, "Bench on original size image", [&]( bool value ){ std::printf( "Checkbox: %d\n", int(value) ); /*m_bench_on_original_size = value;*/ }, false );
 
-		m_ui.add<san::ui::slider>( BLRect{ 500, 10, 400, 30 }, [&]( float value ){ m_radius = value; std::printf( "\rRadius: %7.2f", value ); }, 0/*initial*/, 0/*min*/, 8/*max*/ );
+		m_ui.add<san::ui::slider>( BLRect{ 500, 10, 400, 30 }, [&]( float value ) {
+				m_radius = value;
+				//std::printf( "\rRadius: %7.2f", value );
+			}, 0/*initial*/, 0/*min*/, 64/*max*/ );
 
 		m_bench_func = m_impls.begin()->second;
 	}

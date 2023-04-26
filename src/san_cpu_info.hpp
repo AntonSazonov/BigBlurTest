@@ -16,7 +16,7 @@ class cpu_info {
 	std::string		m_brand;
 	std::string		m_feats;
 
-	enum class feat_e : uint8_t { SSE, SSE2, SSE3, SSSE3, SSE41, SSE42, FMA3, AVX, AVX2, BMI1, BMI2, FEAT_E_MAX };
+	enum class feat_e : uint8_t { /*SSE,*/ SSE2, SSE3, SSSE3, SSE41/*, SSE42*/, FMA3, AVX, AVX2/*, BMI1, BMI2*/, FEAT_E_MAX };
 	enum class  reg_e : uint8_t { eax, ebx, ecx, edx };
 
 #define DEF_FEATURE( feat, fun, reg, bit ) { feat_e::feat, fun, reg, bit, #feat }
@@ -29,19 +29,20 @@ class cpu_info {
 		std::string	name;
 	} m_features[static_cast<size_t>( feat_e::FEAT_E_MAX )] = {
 
-		DEF_FEATURE(   SSE, 1, reg_e::edx, 25 ),
+		//DEF_FEATURE(   SSE, 1, reg_e::edx, 25 ),
 		DEF_FEATURE(  SSE2, 1, reg_e::edx, 26 ),
 
 		DEF_FEATURE(  SSE3, 1, reg_e::ecx,  0 ),
 		DEF_FEATURE( SSSE3, 1, reg_e::ecx,  9 ),
 		DEF_FEATURE( SSE41, 1, reg_e::ecx, 19 ),
-		DEF_FEATURE( SSE42, 1, reg_e::ecx, 20 ),
+		//DEF_FEATURE( SSE42, 1, reg_e::ecx, 20 ),
 		DEF_FEATURE(  FMA3, 1, reg_e::ecx, 12 ),
 		DEF_FEATURE(   AVX, 1, reg_e::ecx, 28 ),
 
 		DEF_FEATURE(  AVX2, 7, reg_e::ebx,  5 ),
-		DEF_FEATURE(  BMI1, 7, reg_e::ebx,  3 ),
-		DEF_FEATURE(  BMI2, 7, reg_e::ebx,  8 ) };
+		//DEF_FEATURE(  BMI1, 7, reg_e::ebx,  3 ),
+		//DEF_FEATURE(  BMI2, 7, reg_e::ebx,  8 )
+	};
 
 #undef DEF_FEATURE
 
@@ -89,19 +90,19 @@ public:
 	std::string	brand()  const { return m_brand;  }
 	std::string	feats()  const { return m_feats;  }
 
-	bool sse()		const { return m_funcs[1][static_cast<size_t>( reg_e::edx )] & 1 << 25; }
+	//bool sse()		const { return m_funcs[1][static_cast<size_t>( reg_e::edx )] & 1 << 25; }
 	bool sse2()		const { return m_funcs[1][static_cast<size_t>( reg_e::edx )] & 1 << 26; }
 
 	bool sse3()		const { return m_funcs[1][static_cast<size_t>( reg_e::ecx )] & 1 <<  0; }
 	bool ssse3()	const { return m_funcs[1][static_cast<size_t>( reg_e::ecx )] & 1 <<  9; }
 	bool sse41()	const { return m_funcs[1][static_cast<size_t>( reg_e::ecx )] & 1 << 19; }
-	bool sse42()	const { return m_funcs[1][static_cast<size_t>( reg_e::ecx )] & 1 << 20; }
+	//bool sse42()	const { return m_funcs[1][static_cast<size_t>( reg_e::ecx )] & 1 << 20; }
 	bool fma3()		const { return m_funcs[1][static_cast<size_t>( reg_e::ecx )] & 1 << 12; }
 	bool avx()		const { return m_funcs[1][static_cast<size_t>( reg_e::ecx )] & 1 << 28; }
 
 	bool avx2()		const { return m_funcs[7][static_cast<size_t>( reg_e::ebx )] & 1 <<  5; }
-	bool bmi1()		const { return m_funcs[7][static_cast<size_t>( reg_e::ebx )] & 1 <<  3; }
-	bool bmi2()		const { return m_funcs[7][static_cast<size_t>( reg_e::ebx )] & 1 <<  8; }
+	//bool bmi1()		const { return m_funcs[7][static_cast<size_t>( reg_e::ebx )] & 1 <<  3; }
+	//bool bmi2()		const { return m_funcs[7][static_cast<size_t>( reg_e::ebx )] & 1 <<  8; }
 
 	//bool sse4a()	const { return m_funcs_ext[1][static_cast<size_t>( reg_e::ecx )] & 1 <<  6; }
 	//bool fma4()		const { return m_funcs_ext[1][static_cast<size_t>( reg_e::ecx )] & 1 << 16; }

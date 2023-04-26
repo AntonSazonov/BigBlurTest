@@ -6,7 +6,7 @@ namespace san {
 		m_impls.emplace_front( name,																				\
 			std::bind( func, std::ref( image ), std::ref( a_parallel_for ), std::placeholders::_1, std::placeholders::_2 ) );
 
-// Class must have function 'blur( ImageViewT & image, ParallelForT & parallel_for, int radius, int override_num_threads )'
+// Class must have function 'blur( ImageViewT & image, ParallelForT & parallel_for, float radius, int override_num_threads )'
 #define EMPLACE_IMPL_CLASS( name, image, inst )																										\
 		m_impls.emplace_front( name,																												\
 			std::bind(																																\

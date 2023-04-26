@@ -45,7 +45,6 @@
 #include "ui/san_ui_ctrl_link.hpp"
 #include "ui/san_ui_ctrl_slider.hpp"
 
-
 class app final : public san::window {
 	san::cpu::features				m_cpu_features;
 
@@ -61,7 +60,8 @@ class app final : public san::window {
 
 	// Implementation list.
 	// Function params.: 'radius', '# of threads' or 0 - max. available threads from 'parallel_for'.
-	san::impls_list <std::function <void(int, int)>>	m_impls;
+	using impl_func_t = std::function <void(float, int)>;
+	san::impls_list <impl_func_t>	m_impls;
 
 public:
 	app( int width, int height )
@@ -106,7 +106,7 @@ public:
 		}
 		//m_ui.add<san::ui::checkbox>( BLPoint{ 10, double(y) }, "Bench on original size image", [&]( bool value ){ std::printf( "Checkbox: %d\n", int(value) ); /*m_bench_on_original_size = value;*/ }, false );
 
-		m_ui.add<san::ui::slider>( BLRect{ 500, 10, 400, 30 }, [&]( float value ){ m_radius = value; std::printf( "\rRadius: %6.1f", value ); }, 16/*initial*/, 0/*min*/, 2048/*max*/ );
+		m_ui.add<san::ui::slider>( BLRect{ 500, 10, 400, 30 }, [&]( float value ){ m_radius = value; std::printf( "\rRadius: %7.2f", value ); }, 0/*initial*/, 0/*min*/, 8/*max*/ );
 
 		m_bench_func = m_impls.begin()->second;
 	}
@@ -141,17 +141,17 @@ public:
 		}
 	}
 
-	bool							m_is_benchmarking	= false;
+	bool			m_is_benchmarking	= false;
 
-	double							m_bench_start;
-	int								m_bench_time_ms		= 10'000;
-	double							m_bench_time_func;
+	double			m_bench_start;
+	int				m_bench_time_ms		= 10'000;
+	double			m_bench_time_func;
 
-	int								m_bench_radius_raises;
-	int								m_bench_radius;
-	int								m_bench_interations;
-	std::string						m_bench_name;
-	std::function <void(int, int)>	m_bench_func;
+	int				m_bench_radius_raises;
+	int				m_bench_radius;
+	int				m_bench_interations;
+	std::string		m_bench_name;
+	impl_func_t		m_bench_func;
 
 	template <typename PairT>
 	void start_benchmark( const PairT & pair ) {

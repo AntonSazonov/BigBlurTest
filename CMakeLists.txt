@@ -29,6 +29,7 @@ add_executable( ${BBT_PROJECT_NAME}
 	src/stb_impl.cpp
 	src/stb/stb_image.h
 	src/stb/stb_image_resize.h
+	src/stb/stb_image_write.h
 
 	src/agg/agg_array.h
 	src/agg/agg_basics.h

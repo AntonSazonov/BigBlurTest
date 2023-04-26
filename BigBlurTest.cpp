@@ -104,6 +104,17 @@ public:
 			m_ui.add<san::ui::button>( BLPoint( 10, y ), p.first, [&]{ /*std::printf( "Benchmark start...\n" );*/ start_benchmark( p ); } );
 			y += 40;
 		}
+
+		// Screenshot button
+		m_ui.add<san::ui::button>( BLPoint( 10, y ), "Take screenshot", [&] {
+			//std::printf( "Benchmark start...\n" );
+			if ( !save_image_jpg( m_surface_view_san, "screenshot.jpg", 98 ) ) {
+				std::fprintf( stderr, "save_image_jpg(): error\n" );
+			} else {
+				std::fprintf( stderr, "Saved 'screenshot.jpg'.\n" );
+			}
+		} );
+
 		//m_ui.add<san::ui::checkbox>( BLPoint{ 10, double(y) }, "Bench on original size image", [&]( bool value ){ std::printf( "Checkbox: %d\n", int(value) ); /*m_bench_on_original_size = value;*/ }, false );
 
 		m_ui.add<san::ui::slider>( BLRect{ 500, 10, 400, 30 }, [&]( float value ) {

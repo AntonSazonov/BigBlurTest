@@ -138,7 +138,7 @@ public:
 			std::fprintf( stderr, "Couldn't create surface.\n" );
 			stbi_image_free( p_image );
 		} else {
-			p_surface->swap_components( 0, 2 );
+			p_surface->swap_components( 0, 2 ); // Swap R-B
 		}
 	}
 
@@ -148,6 +148,11 @@ public:
 				delete p_surface;
 			}
 		} );
+}
+
+inline bool save_image_jpg( san::surface_view & s, const char * filename, int quality = 75 /*[1;100]*/ ) {
+	s.swap_components( 0, 2 ); // Swap R-B
+	return stbi_write_jpg( filename, s.width(), s.height(), 4, s.ptr(), quality );
 }
 
 } // namespace san

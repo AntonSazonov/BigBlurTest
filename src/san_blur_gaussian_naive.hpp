@@ -1,10 +1,12 @@
 #pragma once
 
+#include <vector>
+
 // Two-pass gaussian implementation
 
 namespace san::blur::gaussian {
 
-template <int MaxRadius, typename ValueT = float>
+template <int MaxRadius, typename ValueT>
 class kernel {
 	static_assert( std::is_floating_point_v<ValueT> );
 
@@ -53,30 +55,29 @@ public:
 }; // class kernel
 
 
-template <typename KernelT>
 class naive {
-	KernelT &	m_kernel;
-	using		value_type = typename KernelT::value_type;
 
-	void do_line( adaptor::straight_line & line, int beg, int end, int radius ) {
+	template <typename KernelT>
+	void do_line( const KernelT & kernel, adaptor::straight_line & line, int beg, int end ) {
 
-		int			len = end - beg;
+		int		radius = kernel.radius();
+		int		length = end - beg;
 
 		// That's not stack from Stack Blur, that's memory allocated in stack.
-		uint32_t *	p_stack = (uint32_t *)SAN_STACK_ALLOC( sizeof( uint32_t ) * len );
+		uint32_t *	p_stack = (uint32_t *)SAN_STACK_ALLOC( sizeof( uint32_t ) * length );
 		uint32_t *	p_dst = p_stack;
 
 		for ( int coord = beg; coord < end; coord++ ) {
 
-			value_type sum_r = 0;
-			value_type sum_g = 0;
-			value_type sum_b = 0;
-			value_type sum_a = 0;
+			typename KernelT::value_type sum_r = 0;
+			typename KernelT::value_type sum_g = 0;
+			typename KernelT::value_type sum_b = 0;
+			typename KernelT::value_type sum_a = 0;
 
 			for ( int i = -radius; i <= radius; i++ ) {
 				uint32_t c = line.get_pix( coord + i );
 
-				value_type weight = m_kernel[i + radius];
+				typename KernelT::value_type weight = kernel[i + radius];
 				sum_r += ( c        & 0xff) * weight;
 				sum_g += ((c >> 8)  & 0xff) * weight;
 				sum_b += ((c >> 16) & 0xff) * weight;
@@ -92,25 +93,22 @@ class naive {
 		}
 
 		// Blit blurred line back...
-		p_dst = line.ptr() + beg;
-		while ( len-- > 0 ) {
-			*p_dst = *p_stack++;
-			p_dst += line.advance();
+		line.set_pix_start( beg );
+		while ( length-- > 0 ) {
+			line.set_pix_next( *p_stack++ );
 		}
 	}
 
 public:
-	naive( KernelT & kernel ) : m_kernel( kernel ) {}
-
-	template <typename ImageViewT, typename ParallelForT>
-	void blur( ImageViewT & image, ParallelForT & parallel_for, int override_num_threads ) {
+	template <typename KernelT, typename ImageViewT, typename ParallelForT>
+	void operator () ( const KernelT & kernel, ImageViewT & image, ParallelForT & parallel_for, int override_num_threads ) {
 		assert( image.components() == 4 );
 
 		// Horizontal pass...
 		parallel_for.run_and_wait( 0, image.height(), [&]( int beg, int end ) {
 			for ( int i = beg; i < end; i++ ) {
 				adaptor::straight_line line( (uint32_t *)image.row_ptr( i ), image.width(), 1 );
-				do_line( line, 0, image.width(), m_kernel.radius() );
+				do_line( kernel, line, 0, image.width() );
 			}
 		}, override_num_threads );
 
@@ -118,30 +116,26 @@ public:
 		parallel_for.run_and_wait( 0, image.width(), [&]( int beg, int end ) {
 			for ( int i = beg; i < end; i++ ) {
 				adaptor::straight_line line( (uint32_t *)image.col_ptr( i ), image.height(), image.stride() / image.components() );
-				do_line( line, 0, image.height(), m_kernel.radius() );
+				do_line( kernel, line, 0, image.height() );
 			}
 		}, override_num_threads );
 	}
 }; // class naive
 
 
-// Very slow implementation
-template <size_t MaxRadius>
+template <int MaxRadius, typename ValueT>
 class naive_test {
-	kernel <MaxRadius>			m_kernel;
-	naive <decltype(m_kernel)>	m_filter;
+	kernel <MaxRadius, ValueT>	m_kernel;
+	naive						m_filter;
 
 public:
-	naive_test() : m_filter( m_kernel ) {}
-
 	template <typename ImageViewT, typename ParallelForT>
-	void blur( ImageViewT & image, ParallelForT & parallel_for, int radius, int override_num_threads ) {
+	void operator () ( ImageViewT & image, ParallelForT & parallel_for, int radius, int override_num_threads ) {
 		if ( radius < 1 ) return;
 		m_kernel.set_radius( radius );
 		m_kernel.normalize();
-		m_filter.blur( image, parallel_for, override_num_threads );
+		m_filter( m_kernel, image, parallel_for, override_num_threads );
 	}
 }; // class naive_test
-
 
 } // namespace san::blur::gaussian

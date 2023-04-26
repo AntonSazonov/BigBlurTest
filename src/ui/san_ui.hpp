@@ -17,7 +17,6 @@ class ui : public BLContext {
 
 	//console					m_console;
 	std::list <ControlBaseT *>	m_controls;
-	ControlBaseT *				m_hover			= nullptr;	// control under mouse pointer
 	ControlBaseT *				m_focus			= nullptr;	// active control
 
 	bool load_font( BLFontFace & face, const std::string & name ) {
@@ -58,20 +57,30 @@ public:
 	void on_mouse_motion( int x, int y ) {
 		BLPoint xy( x, y );
 
+		static ControlBaseT *	hover		= nullptr;	// control under mouse pointer
+		ControlBaseT *			first_hit	= nullptr;
+
 		// Process controls in reverse order...
 		for ( auto it = m_controls.rbegin(), end = m_controls.rend(); it != end; ++it ) {
 			ControlBaseT * p_ctl = *it;
 			bool inside = p_ctl->is_inside( xy );
 
-			if ( m_hover == p_ctl && !inside ) {
-				m_hover->on_mouse_leave( xy );
-				m_hover = nullptr;
+			if ( !first_hit && inside ) {
+				first_hit = p_ctl;
+
+				if ( hover && hover != first_hit ) {
+					//fprintf( stderr, "on_mouse_leave 1\n" );
+					hover->on_mouse_leave( xy );
+				}
+
+				p_ctl->on_mouse_enter( xy );
+				hover = first_hit;
 			}
 
-			if ( m_hover != p_ctl && inside ) {
-				p_ctl->on_mouse_enter( xy );
-				m_hover = p_ctl;
-
+			if ( hover == p_ctl && !inside ) {
+				//fprintf( stderr, "on_mouse_leave 2\n" );
+				hover->on_mouse_leave( xy );
+				hover = nullptr;
 			}
 
 			p_ctl->on_mouse_motion( xy );

@@ -6,7 +6,7 @@ namespace san::blur::recursive {
 // std::common_type<int, double>::type == double
 
 template <typename ValueT = float>
-struct naive_calc_t {
+struct naive_calc {
 	using	value_type	= ValueT;
 
 	ValueT r, g, b, a;
@@ -25,15 +25,15 @@ struct naive_calc_t {
 			  uint8_t(a);
 	}
 
-	void calc( ValueT b1, ValueT b2, ValueT b3, ValueT b4, const naive_calc_t & c1, const naive_calc_t & c2, const naive_calc_t & c3, const naive_calc_t & c4 ) {
+	void calc( ValueT b1, ValueT b2, ValueT b3, ValueT b4, const naive_calc & c1, const naive_calc & c2, const naive_calc & c3, const naive_calc & c4 ) {
 		r = b1 * c1.r + b2 * c2.r + b3 * c3.r + b4 * c4.r;
 		g = b1 * c1.g + b2 * c2.g + b3 * c3.g + b4 * c4.g;
 		b = b1 * c1.b + b2 * c2.b + b3 * c3.b + b4 * c4.b;
 		a = b1 * c1.a + b2 * c2.a + b3 * c3.a + b4 * c4.a;
 	}
-}; // struct naive_calc_t
+}; // struct naive_calc
 
-template <typename CalcT = naive_calc_t<>>
+template <typename CalcT = naive_calc<>>
 class naive {
 	using	value_type	= typename CalcT::value_type;
 
@@ -53,10 +53,11 @@ class naive {
 		c2 =                            -1.42810f * q2 + -1.266610f * q3;
 		c3 =                                              0.422205f * q3;
 
-		c   = 1 - (c1 + c2 + c3) / c0;
-		c1 /= c0;
-		c2 /= c0;
-		c3 /= c0;
+		c0 = 1 / c0;
+		c   = 1 - (c1 + c2 + c3) * c0;
+		c1 *= c0;
+		c2 *= c0;
+		c3 *= c0;
 	}
 
 public:

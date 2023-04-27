@@ -79,7 +79,7 @@ public:
 		// Generate chess pattern...
 		m_image_list.generate_pattern( width, height,
 			[]( int x, int y ) -> uint32_t {
-				return  ((x >> 6) + (y >> 6)) & 1 ? 0xffffffff : 0;
+				return ((x >> 6) + (y >> 6)) & 1 ? 0xffffffff : 0;
 			} );
 
 		// Blit current image...

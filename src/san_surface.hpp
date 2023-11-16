@@ -10,20 +10,38 @@ class surface {
 	int			m_stride;
 	uint8_t *	m_data;
 
-	void free() {
+public:
+	static constexpr size_t alloc_alignment = 64;
+
+private:
+	uint8_t * alloc( size_t size ) {
+		uint8_t * p = new (std::align_val_t(alloc_alignment), std::nothrow) uint8_t [size];
+		assert( ((uintptr_t)p & (alloc_alignment - 1)) == 0 );
+		return p;
+	}
+
+	void free( uint8_t * p ) {
 		if ( !m_managed_outside ) {
-			delete [] m_data;
+			//delete [] p;
+			::operator delete [] ( p, std::align_val_t(alloc_alignment), std::nothrow );
 		}
 	}
 
 public:
+	static size_t get_alignment_bytes( uint8_t * p ) {
+		size_t b = 0;
+		uintptr_t a = (uintptr_t)p;
+		while ( !(a & 1) ) { a >>= 1; b++; }
+		return 1 << b;
+	}
+
 	surface( int width, int height, int components )
 		: m_managed_outside( false )
 		, m_width( width )
 		, m_height( height )
 		, m_components( components )
 		, m_stride( (((m_width * m_components * 8) + 31) & ~31) >> 3 )
-		, m_data( new (std::nothrow) uint8_t [m_stride * m_height] ) {}
+		, m_data( alloc( m_stride * m_height ) ) {}
 
 	surface( uint8_t * p, int width, int height, int stride, int components )
 		: m_managed_outside( true )
@@ -39,25 +57,25 @@ public:
 		, m_height(	other.m_height )
 		, m_components(	other.m_components )
 		, m_stride( other.m_stride )
-		, m_data( new (std::nothrow) uint8_t [m_stride * m_height] )
+		, m_data( alloc( m_stride * m_height ) )
 	{
 		if ( m_data && other ) other.blit_to( this );
 	}
 
 	surface & operator = ( const surface & other ) {
 		if ( this == &other ) return *this;
-		free();
+		free( m_data );
 		m_managed_outside	= false;
 		m_width				= other.m_width;
 		m_height			= other.m_height;
 		m_components		= other.m_components;
 		m_stride			= other.m_stride;
-		m_data				= new (std::nothrow) uint8_t [m_stride * m_height];
+		m_data				= alloc( m_stride * m_height );
 		if ( m_data && other ) other.blit_to( this );
 		return *this;
 	}
 
-	virtual ~surface() { free(); }
+	virtual ~surface() { free( m_data ); }
 
 	explicit operator bool () const { return m_data != nullptr; }
 
@@ -128,6 +146,11 @@ public:
 	uint8_t * p_image = stbi_load( filename, &src_w, &src_h, &channels, 4/*desired_channels*/ );
 	if ( !p_image ) {
 		std::fprintf( stderr, "stbi_load(): error.\n" );
+	}
+
+	// TODO: create image copy
+	if ( surface::get_alignment_bytes( p_image ) < surface::alloc_alignment ) {
+		std::printf( "[WARNING]: stbi_load() image alignment < surface::alloc_alignment (%d)\n", surface::alloc_alignment );
 	}
 
 	san::surface * p_surface = nullptr;

@@ -28,10 +28,9 @@ private:
 	}
 
 public:
-	static size_t get_alignment_bytes( uint8_t * p ) {
+	static size_t get_alignment_bytes( uintptr_t p ) {
 		size_t b = 0;
-		uintptr_t a = (uintptr_t)p;
-		while ( !(a & 1) ) { a >>= 1; b++; }
+		while ( !(p & 1) ) { p >>= 1; b++; }
 		return 1 << b;
 	}
 
@@ -40,8 +39,14 @@ public:
 		, m_width( width )
 		, m_height( height )
 		, m_components( components )
-		, m_stride( (((m_width * m_components * 8) + 31) & ~31) >> 3 )
-		, m_data( alloc( m_stride * m_height ) ) {}
+		, m_stride( (m_width * m_components + alloc_alignment - 1) / alloc_alignment * alloc_alignment )
+		, m_data( alloc( m_stride * m_height ) )
+	{
+		assert( get_alignment_bytes( (uintptr_t)m_data ) >= alloc_alignment );
+		assert( get_alignment_bytes( m_stride ) >= alloc_alignment );
+		printf( "m_data: %p, alignment: %zu\n", m_data, get_alignment_bytes( (uintptr_t)m_data ) );
+		printf( "m_stride: %4d, alignment: %zu\n", m_stride, get_alignment_bytes( (uintptr_t)m_stride ) );
+	}
 
 	surface( uint8_t * p, int width, int height, int stride, int components )
 		: m_managed_outside( true )
@@ -149,7 +154,7 @@ public:
 	}
 
 	// TODO: create image copy
-	if ( surface::get_alignment_bytes( p_image ) < surface::alloc_alignment ) {
+	if ( surface::get_alignment_bytes( (uintptr_t)p_image ) < surface::alloc_alignment ) {
 		std::printf( "[WARNING]: stbi_load() image alignment < surface::alloc_alignment (%d)\n", surface::alloc_alignment );
 	}
 

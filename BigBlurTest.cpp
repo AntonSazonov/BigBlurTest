@@ -173,7 +173,7 @@ public:
 		m_bench_name = pair.first;
 		m_bench_func = pair.second;
 
-		std::printf( "\n" );
+		//std::printf( "\n" );
 		return; // DEBUG!!!
 
 		std::printf( "\nBenchmarking (%d ms.): %s \n", m_bench_time_ms, m_bench_name.c_str() );
@@ -197,14 +197,12 @@ public:
 
 		if ( !m_is_benchmarking ) {
 #if 1
-#if 1
 			//san::blur::gaussian::naive_test <32> gaussian;
 			//gaussian.blur( m_surface_view_san, m_parallel_for, m_mouse_x, 0/*max. threads*/ );
 			if ( m_bench_func ) m_bench_func( m_radius, 0 );
 #else
 			agg::recursive_blur	<agg::rgba8, agg::recursive_blur_calc_rgba<double>>	agg_recursive_blur;
 			agg_recursive_blur.blur( m_surface_view_agg, m_parallel_for, m_radius, 0/*max. threads*/ );
-#endif
 #endif
 		}
 

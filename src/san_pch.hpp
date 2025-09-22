@@ -14,6 +14,7 @@
 #include <functional>
 //#include <optional>
 #include <filesystem>
+#include <algorithm>			// std::clamp
 
 #include <queue>
 #include <atomic>
